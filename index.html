@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FBF6F0">
+<title>Prayer Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Great+Vibes&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+
+
+<link rel="stylesheet" href="./styles.css">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#1E5F63">
+
+</head>
+<body>
+<div id="loading">Opening your journal…</div>
+<div class="shell">
+<aside class="side" id="side"></aside>
+<div style="flex:1;min-width:0">
+<header class="topm" id="topm"></header>
+<main class="main" id="main"></main>
+</div>
+</div>
+<div id="fabw"></div>
+<nav class="bnav" id="bnav"></nav>
+<div class="more" id="more" hidden></div>
+<div id="modal" class="modal" hidden></div>
+<div id="toast" class="toast" hidden></div>
+
+<!-- Contact Pop-Up Modal -->
+<div id="tlcContactModal" onclick="if(event.target === this) this.style.display='none'"
+     style="display: none; position: fixed; inset: 0; background: rgba(15, 35, 45, 0.55); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+  <div style="background: #fdfbf7; color: #1b3644; border: 2px solid #d4af37; border-radius: 20px; max-width: 410px; width: 100%; padding: 28px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); font-family: 'Garamond', Georgia, serif; position: relative;">
+    <button onclick="document.getElementById('tlcContactModal').style.display='none'" 
+            style="position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 24px; color: #1b3644; cursor: pointer;">&times;</button>
+    <h3 style="margin: 0 0 8px; color: #164e5b; font-size: 24px;">Connect With Academy TLC</h3>
+    <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.5; color: #3a505c;">
+      Reach out anytime for study questions, prayer requests, or support.
+    </p>
+        <!-- Phone & Email Box -->
+    <div style="background: #f4efe6; padding: 16px; border-radius: 14px; margin-bottom: 18px; font-size: 16px; text-align: left;">
+      
+      <!-- Phone Row: Call, Text, Copy -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+        <span>
+          <strong>Phone:</strong> 
+          <a href="tel:+17064698752" style="color: #164e5b; text-decoration: underline;">(706) 469-8752</a>
+        </span>
+        <div style="display: flex; gap: 6px;">
+          <a href="sms:+17064698752" 
+             style="background: #164e5b; border: 1px solid #164e5b; color: #fdfbf7; text-decoration: none; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-family: inherit;">
+            Text
+          </a>
+          <button onclick="navigator.clipboard.writeText('(706) 469-8752'); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy', 2000);" 
+                  style="background: #e6dfd3; border: 1px solid #d4af37; color: #1b3644; padding: 4px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit;">
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- Email Row: Email, Copy -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+        <span style="word-break: break-all;">
+          <strong>Email:</strong> 
+          <a href="mailto:AcademyTLC.ministry@gmail.com" style="color: #164e5b; text-decoration: underline;">AcademyTLC.ministry@gmail.com</a>
+        </span>
+        <button id="copyTlcEmailBtn" onclick="navigator.clipboard.writeText('AcademyTLC.ministry@gmail.com'); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy', 2000);" 
+                style="background: #e6dfd3; border: 1px solid #d4af37; color: #1b3644; padding: 4px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit;">
+          Copy
+        </button>
+      </div>
+
+    </div>
+
+
+        <!-- Action Buttons: Save Contact + YouTube -->
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+      <button onclick="downloadTlcVCard()"
+         style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #fdfbf7; color: #164e5b; padding: 11px 20px; border-radius: 25px; font-size: 16px; border: 1.5px solid #164e5b; cursor: pointer; font-family: inherit; font-weight: 600;">
+        &#128100; Save Contact
+      </button>
+           <button onclick="window.open('https://youtube.com/@academytlc?si=aKNJ5kDsTCza3aVI', '_blank', 'noopener,noreferrer')"
+         style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #164e5b; color: #fdfbf7; padding: 11px 22px; border-radius: 25px; font-size: 16px; border: 1px solid #d4af37; cursor: pointer; font-family: inherit;">
+        &#9654; YouTube Channel
+      </button>
+
+    </div>
+
+
+
+  </div>
+</div>
+<!-- Top Calendar Reminder Prompt Banner -->
+<div id="tlcCalBanner" style="display: none; position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 9998; width: calc(100% - 28px); max-width: 520px; background: #fdfbf7; color: #1b2a32; border: 2px solid #d4af37; border-radius: 18px; padding: 16px 18px; box-shadow: 0 12px 32px rgba(15, 74, 83, 0.22); font-family: 'Garamond', Georgia, serif;">
+  <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
+    <span style="font-size: 20px; line-height: 1.2;">&#128276;</span>
+    <div style="flex: 1;">
+      <div style="font-weight: 700; color: #0f4a53; font-size: 17px; margin-bottom: 2px;">Daily Prayer &amp; Reading Reminder</div>
+      <div style="font-size: 15px; line-height: 1.4; color: #3a505c;">Would you like to add a daily study reminder to your phone calendar?</div>
+    </div>
+  </div>
+  <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+    <button onclick="handleCalReminderChoice('never')" 
+            style="background: transparent; border: 1px solid #e2dfd2; color: #5a727e; padding: 6px 12px; border-radius: 999px; font-size: 13px; cursor: pointer; font-family: 'Jost', sans-serif;">
+      Don't ask again
+    </button>
+    <button onclick="handleCalReminderChoice('later')" 
+            style="background: #f4efe6; border: 1px solid #d4af37; color: #1b2a32; padding: 6px 14px; border-radius: 999px; font-size: 13px; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500;">
+      Not right now
+    </button>
+    <button onclick="handleCalReminderChoice('yes')" 
+            style="background: #1b6b78; border: 1px solid #1b6b78; color: #ffffff; padding: 6px 16px; border-radius: 999px; font-size: 13px; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 600;">
+      Yes
+    </button>
+  </div>
+</div>
+<!-- Live Group Announcement Notification Bar -->
+<div id="tlcGroupNoticeBar" style="display: none; position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 9999; width: calc(100% - 28px); max-width: 540px; background: #FCF5E3; color: #1B2A32; border: 2px solid #D4AF37; border-radius: 18px; padding: 16px 18px; box-shadow: 0 14px 36px rgba(15, 74, 83, 0.28); font-family: 'Cormorant Garamond', Georgia, serif;">
+  <div style="display: flex; align-items: flex-start; gap: 12px;">
+    <span style="font-size: 22px; line-height: 1.2;">&#128227;</span>
+    <div style="flex: 1; min-width: 0;">
+      <div style="font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0F4A53; margin-bottom: 4px;">Message From Academy T.L.C.</div>
+      <div id="tlcGroupNoticeText" style="font-size: 17.5px; line-height: 1.45; color: #1B2A32; white-space: pre-wrap;"></div>
+    </div>
+  </div>
+  <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+    <button type="button" onclick="dismissGroupNoticeBar()" style="background: #1B6B78; border: 1px solid #1B6B78; color: #FFFFFF; padding: 6px 18px; border-radius: 999px; font-size: 13px; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 600;">
+      Dismiss
+    </button>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      regs.forEach(function(r) { r.unregister(); });
+    });
+  }
+  boot();
+</script>
+</body>
+</html>
+
+
+
+
