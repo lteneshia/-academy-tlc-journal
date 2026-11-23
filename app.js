@@ -2723,6 +2723,7 @@ function progressFromWelcomeScreen() {
  * Handles the special first-time scripture greeting and saves their profile name.
  */
 function showFirstTimeRegistrationModal() {
+  if (localStorage.getItem('tlc_welcomed_v1') === '1') return;
   var content = '<div style="text-align:center; margin-bottom:18px;">' +
                 '  <p style="font-family:var(--serif); font-size:16px; font-style:italic; line-height:1.5; color:var(--mu); background:var(--paper); padding:14px; border-radius:12px; margin:0 0 16px; border-left:3px solid var(--gold);">“Let my teaching fall like rain and my word settle like dew, like gentle rain on new grass and showers on tender plants.”<br><b style="font-style:normal; font-size:13px; display:block; margin-top:4px; color:var(--sage);">— Deuteronomy 32:2</b></p>' +
                 '  <h3 style="font-family:var(--sans); font-size:18px; font-weight:600; color:var(--ink); margin:10px 0;">The Lord calls you His; What shall we call you?</h3>' +
@@ -2738,14 +2739,18 @@ function saveFirstTimeRegistrationName() {
   var nameInput = val('w_n').trim();
   var finalName = nameInput || 'Believer';
   
+  localStorage.setItem('tlc_welcomed_v1', '1');
+  localStorage.setItem('tlc_user_name_v1', finalName);
   setCfg('name', finalName);
-  setCfg('welcomed', 1); // Locks the registration flag so this popup never interrupts them again
+  setCfg('welcomed', 1);
+  if (typeof flushSave === 'function') flushSave();
   
-    toast('Welcome to the family, ' + finalName + '!');
+  toast('Welcome to the family, ' + finalName + '!');
   closeModal();
   render();
   setTimeout(checkDailyCalBanner, 400);
 }
+
 
 
 
@@ -5178,6 +5183,7 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
+
 
 
 
