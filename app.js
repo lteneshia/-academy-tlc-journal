@@ -1684,14 +1684,27 @@ function saveAdminContentEditor() {
 }
 
 
+var _admTapCount = 0, _admTapTimer = null;
+function tapSecretAdmin_() {
+  _admTapCount++;
+  clearTimeout(_admTapTimer);
+  _admTapTimer = setTimeout(function() { _admTapCount = 0; }, 2500);
+  if (_admTapCount >= 5) {
+    _admTapCount = 0;
+    openPrayerAdminModal();
+  }
+}
 
-  function vPrayerWall() {
+
+
+function vPrayerWall() {
   var isAdm = isPrayerAdminUnlocked_();
-  var h = ph('Prayer Wall', 'Community', 'Stand in agreement with our Academy T.L.C. family, or send a prayer request to our team.',
+  var h = ph('<span onclick="tapSecretAdmin_()" style="cursor:default;user-select:none;">Prayer Wall</span>', 'Community', 'Stand in agreement with our Academy T.L.C. family, or send a prayer request to our team.',
     '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
     (isAdm ? '<button type="button" class="btn" onclick="openAdminContentEditor()">Edit Plan &amp; News</button>' : '') +
-    '<button type="button" class="btn" onclick="openPrayerAdminModal()">' + (isAdm ? 'Lock Admin' : 'Admin') + '</button>' +
+    (isAdm ? '<button type="button" class="btn" onclick="openPrayerAdminModal()">Lock Admin</button>' : '') +
     '<button class="btn pri" onclick="openGroupPrayerForm()">' + ic('plus') + ' Submit Request</button></div>');
+
 
   if (!window._groupPrayers) {
     setTimeout(loadGroupPrayers, 50);
@@ -5162,5 +5175,6 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
+
 
 
