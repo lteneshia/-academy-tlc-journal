@@ -1699,11 +1699,14 @@ function tapSecretAdmin_() {
 
 function vPrayerWall() {
   var isAdm = isPrayerAdminUnlocked_();
-  var h = ph('<span onclick="tapSecretAdmin_()" style="cursor:default;user-select:none;">Prayer Wall</span>', 'Community', 'Stand in agreement with our Academy T.L.C. family, or send a prayer request to our team.',
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-    (isAdm ? '<button type="button" class="btn" onclick="openAdminContentEditor()">Edit Plan &amp; News</button>' : '') +
-    (isAdm ? '<button type="button" class="btn" onclick="openPrayerAdminModal()">Lock Admin</button>' : '') +
-    '<button class="btn pri" onclick="openGroupPrayerForm()">' + ic('plus') + ' Submit Request</button></div>');
+  var h = '<div onclick="if(event.target.tagName===\'H1\')tapSecretAdmin_()">' +
+    ph('Prayer Wall', 'Community', 'Stand in agreement with our Academy T.L.C. family, or send a prayer request to our team.',
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+      (isAdm ? '<button type="button" class="btn" onclick="openAdminContentEditor()">Edit Plan &amp; News</button>' : '') +
+      (isAdm ? '<button type="button" class="btn" onclick="openPrayerAdminModal()">Lock Admin</button>' : '') +
+      '<button class="btn pri" onclick="openGroupPrayerForm()">' + ic('plus') + ' Submit Request</button></div>') +
+    '</div>';
+
 
 
   if (!window._groupPrayers) {
@@ -5175,6 +5178,7 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
+
 
 
 
