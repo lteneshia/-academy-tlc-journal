@@ -569,7 +569,14 @@ function del(table, id, silent) {
   if (!silent) render();
 }
 
-function cfg() { return S.settings.main || { id: 'main' }; }
+function cfg() {
+  var c = S.settings.main || { id: 'main' };
+  var savedName = localStorage.getItem('tlc_user_name_v1');
+  if (savedName) c.name = savedName;
+  if (localStorage.getItem('tlc_welcomed_v1') === '1') c.welcomed = 1;
+  return c;
+}
+
 function setCfg(key, value) { var c = cfg(); c[key] = value; put('settings', c, true); }
 function all(table) { return Object.values(S[table]); }
 
@@ -5183,6 +5190,7 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
+
 
 
 
