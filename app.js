@@ -2702,18 +2702,17 @@ function vSettings() {
     '<div class="f"><span>Screen Theme</span><button type="button" class="btn sm" style="width:100%; justify-content:space-between; border-color:var(--gold); background:' + (c.eveningMode === '1' ? 'var(--gold2)' : 'var(--card)') + ';" onclick="toggleEveningTheme()"><span>' + (c.eveningMode === '1' ? '🕯️ Warm Evening Mode' : '☀️ Daylight Cream Mode') + '</span><span class="tag gold">Switch</span></button></div></div>';
 
   h += '<div class="card"><h3>Share app &amp; daily reminder</h3><p class="sm">Open this link on your phone, then choose <b>Add to Home Screen</b> for an app experience.</p><div class="row"><input type="text" readonly value="' + esc(shareUrl) + '"><button class="btn sm" onclick="copyText(URL0 || window.location.href, \'Link copied.\')">' + ic('copy') + 'Copy</button></div>' +
-    '<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line);"><div class="f" style="margin-bottom:8px;overflow:hidden;"><span>Preferred Daily Quiet-Time</span><input type="time" style="-webkit-appearance:none;appearance:none;width:100%;max-width:100%;min-width:0;box-sizing:border-box;display:flex;justify-content:center;align-items:center;text-align:center;margin:0 auto;" value="' + esc(c.reminderTime || '08:00') + '" onchange="setCfg(\'reminderTime\',this.value);toast(\'Quiet time updated.\')"></div>
-<button class="btn sm pri" onclick="openDailyCalendarAlert()">🔔 Set Daily Phone Calendar Alert</button><div class="mu sm" style="margin-top:6px;">Adds a daily recurring reminder to your phone calendar at your chosen time with a direct link to open your journal.</div>' +
+    '<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line);"><div class="f" style="margin-bottom:8px;overflow:hidden;"><span>Preferred Daily Quiet-Time</span><input type="time" style="-webkit-appearance:none;appearance:none;width:100%;max-width:100%;min-width:0;box-sizing:border-box;display:flex;justify-content:center;align-items:center;text-align:center;margin:0 auto;" value="' + esc(c.reminderTime || '08:00') + '" onchange="setCfg(\'reminderTime\',this.value);toast(\'Quiet time updated.\')"></div><button class="btn sm pri" onclick="openDailyCalendarAlert()">🔔 Set Daily Phone Calendar Alert</button><div class="mu sm" style="margin-top:6px;">Adds a daily recurring reminder to your phone calendar at your chosen time with a direct link to open your journal.</div>' +
     '<div style="margin-top:10px;"><button class="link" style="font-size:13.5px; font-weight:600;" onclick="openQuickGuideModal()">📖 Open New Member Quick Guide</button></div></div></div>';
 
-
   h += '<div class="card"><h3>Your private data</h3><p class="sm mu">Your personal journal entries, notes, and reading progress are saved privately on your own device. Download a backup anytime to keep a copy or move to a new phone.</p><div class="row" style="flex-wrap:wrap">' +
-    '<button class="btn sm" onclick="backup()">Download a backup</button><label class="btn sm">Restore a backup<input type="file" accept=".json,application/json" hidden onchange="restore(this.files[0])"></label></div></div>';
+    '<button class="btn sm" onclick="backup()">Download a backup</button><label class="btn sm">Restore a backup<input type="file" accept=".json,application/json" hidden onchange="restore(this.files)"></label></div></div>';
   h += '<div class="card"><h3>Example journal</h3><p class="sm mu">Fill the journal with example prayers and entries to see how everything works. Clear it when you are ready to start.</p><div class="row" style="flex-wrap:wrap"><button class="btn sm" onclick="confirmBox(\'This adds example prayers, entries and verses to your journal.\',\'Add examples\',function(){loadDemo();go(\'today\')})">See an example journal</button>' +
     '<button class="btn sm ghost" onclick="confirmBox(\'This permanently erases every prayer, entry, verse and reading plan in this journal. Download a backup first if you want to keep anything.\',\'Erase everything\',eraseAll)" style="color:#A2453F">Erase everything</button></div></div></div>';
   h += divider() + '<p class="mu sm" style="text-align:center">Prayer Journal by T.L.C · Academy of The Lord\'s Children · Daily verses are from the King James Version.</p>';
   return h;
 }
+
 
 
 function tables() {
