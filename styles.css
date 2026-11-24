@@ -40,9 +40,14 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background:
+    radial-gradient(620px 380px at 16% 22%, rgba(212, 175, 55, 0.16), transparent 65%),
+    radial-gradient(540px 360px at 84% 48%, rgba(212, 175, 55, 0.14), transparent 65%),
+    radial-gradient(600px 400px at 26% 78%, rgba(212, 175, 55, 0.15), transparent 65%),
     radial-gradient(1100px 480px at 105% -5%, rgba(27, 107, 120, 0.10), transparent 60%),
-    radial-gradient(850px 460px at -15% 105%, rgba(226, 114, 59, 0.08), transparent 60%);
+    radial-gradient(850px 460px at -15% 105%, rgba(226, 114, 59, 0.08), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' width='180' height='180' viewBox='0 0 180 180'%3E%3Ccircle cx='24' cy='32' r='1.7' fill='%23D4AF37' fill-opacity='0.34'/%3E%3Ccircle cx='142' cy='54' r='1.3' fill='%23D4AF37' fill-opacity='0.28'/%3E%3Ccircle cx='88' cy='118' r='1.9' fill='%23D4AF37' fill-opacity='0.30'/%3E%3Ccircle cx='156' cy='148' r='1.5' fill='%23D4AF37' fill-opacity='0.26'/%3E%3Ccircle cx='46' cy='158' r='1.2' fill='%23D4AF37' fill-opacity='0.28'/%3E%3C/svg%3E");
 }
+
 
 button, input, textarea, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -342,16 +347,4 @@ body.evening textarea.lined { background: #FDF7ED repeating-linear-gradient(tran
 .hero .hi { font: 400 40px/1 var(--script); }
 .topm .nm { font: 400 30px/1 var(--script); }
 
-
-
-/* Subtle Gold Watercolor Splashes & Dainty Flecks */
-body {
-  background-image:
-    radial-gradient(circle at 12% 18%, rgba(212, 168, 83, 0.11) 0%, transparent 32%),
-    radial-gradient(circle at 88% 35%, rgba(212, 168, 83, 0.09) 0%, transparent 28%),
-    radial-gradient(circle at 22% 78%, rgba(212, 168, 83, 0.10) 0%, transparent 34%),
-    radial-gradient(circle at 82% 85%, rgba(15, 118, 110, 0.05) 0%, transparent 30%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' width='180' height='180' viewBox='0 0 180 180'%3E%3Ccircle cx='24' cy='32' r='1.6' fill='%23D4A853' fill-opacity='0.24'/%3E%3Ccircle cx='142' cy='54' r='1.2' fill='%23D4A853' fill-opacity='0.20'/%3E%3Ccircle cx='88' cy='118' r='1.8' fill='%23D4A853' fill-opacity='0.22'/%3E%3Ccircle cx='156' cy='148' r='1.4' fill='%23D4A853' fill-opacity='0.18'/%3E%3Ccircle cx='46' cy='158' r='1.1' fill='%23D4A853' fill-opacity='0.20'/%3E%3C/svg%3E");
-  background-attachment: fixed;
-}
 
