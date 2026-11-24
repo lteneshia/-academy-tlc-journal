@@ -2383,6 +2383,40 @@ function vReading() {
 /**
  * Renders the top interactive calendar grid with a push-pin notification overlay.
  */
+
+function renderWeeklyRhythmCard_() {
+  var map = activity();
+  var t = today();
+  var counts = { prayed: 0, read: 0, journal: 0, thanks: 0 };
+  for (var i = 0; i < 7; i++) {
+    var dayAct = map[addDays(t, -i)] || {};
+    if (dayAct.prayed) counts.prayed++;
+    if (dayAct.read) counts.read++;
+    if (dayAct.journal) counts.journal++;
+    if (dayAct.thanks) counts.thanks++;
+  }
+  var pills = [
+    ['🙏 Prayed', counts.prayed + ' of 7 days', 'var(--rose2)', 'var(--rose-d)'],
+    ['📖 Read Word', counts.read + ' of 7 days', 'var(--sage2)', '#2f4a28'],
+    ['✍️ Journaled', counts.journal + ' of 7 days', 'var(--gold2)', 'var(--ink)'],
+    ['🌸 Gratitude', counts.thanks + ' of 7 days', 'var(--blush)', 'var(--rose-d)']
+  ];
+  var html = '<div class="card" style="margin-bottom:16px; padding:18px 20px;">';
+  html += '  <div class="hd" style="margin-bottom:10px;"><h3>7-Day Spiritual Rhythm</h3><span class="mu sm">Past 7 days · Grace over perfection</span></div>';
+  html += '  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(135px, 1fr)); gap:8px;">';
+  pills.forEach(function(p) {
+    html += '    <div style="background:' + p.slice(2, 3).pop() + '; border-radius:12px; padding:10px 12px; text-align:center;">';
+    html += '      <div style="font-weight:600; font-size:13.5px; color:' + p.slice(3, 4).pop() + ';">' + esc(p.slice(0, 1).pop()) + '</div>';
+    html += '      <div class="mu sm" style="margin-top:2px; font-weight:500;">' + esc(p.slice(1, 2).pop()) + '</div>';
+    html += '    </div>';
+  });
+  html += '  </div>';
+  html += '</div>';
+  return html;
+}
+
+
+
 function vCalendar() {
   var st = streaks(), m = UI.month || today().slice(0, 7), first = pd(m + '-01'), y = first.getFullYear(), mo = first.getMonth();
   var nDays = new Date(y, mo + 1, 0).getDate(), pad = first.getDay();
@@ -2394,7 +2428,9 @@ function vCalendar() {
   
   var h = ph('Calendar Matrix', 'My Journey', 'Click any day block below to view your reading links, personal study logs, and time-stamped mentorship appointments.');
   h += '<div class="statrow"><div class="card stat"><b>' + st.cur + '</b><span>Current streak</span></div><div class="card stat"><b>' + st.best + '</b><span>Longest streak</span></div><div class="card stat"><b>' + st.total + '</b><span>Days with Him</span></div></div>';
-  h += renderFaithBadges();
+  h += renderWeeklyRhythmCard_();
+h += renderFaithBadges();
+
 
 
   var prev = iso(new Date(y, mo - 1, 1)).slice(0, 7), next = iso(new Date(y, mo + 1, 1)).slice(0, 7);
