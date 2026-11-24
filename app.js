@@ -1179,6 +1179,29 @@ function seedDynamicHeartAndPromises_() {
   }).catch(function() {});
 }
 
+
+
+function useHeartMoodVerse_(mode) {
+  var moodObj = HEART_MOODS[UI.heartMood];
+  if (!moodObj || !moodObj.items || !moodObj.items.length) return;
+  var idx = ((UI.heartMoodIdx && UI.heartMoodIdx[UI.heartMood]) || 0) % moodObj.items.length;
+  var activeM = moodObj.items[idx];
+  var parts = String(activeM.verse || '').split('” — ');
+  var txt = (parts.shift() || '').replace(/^“/, '').trim();
+  var ref = (parts.shift() || 'Scripture').trim();
+  if (mode === 'save') {
+    if (all('verses').some(function(x) { return x.ref === ref; })) { toast('Already in your Scripture tab.'); return; }
+    put('verses', { ref: ref, text: txt, tr: 'KJV', topic: moodObj.label.replace(/^[^\w]+/, ''), memory: false, created: Date.now(), date: today() });
+    toast('Saved ' + ref + ' to Scripture!');
+  } else if (mode === 'journal') {
+    editEntry(null, 'soap', { type: 'soap', date: today(), ref: ref + ' (KJV)', s: txt });
+  } else if (mode === 'card') {
+    openVerseCard(ref, txt, 'KJV');
+  }
+}
+
+
+
 function pickHeartMood(key) {
   UI.heartMoodIdx = UI.heartMoodIdx || {};
   seedDynamicHeartAndPromises_().then(function() { render(); });
@@ -1195,6 +1218,24 @@ function pickHeartMood(key) {
   render();
 }
 
+function usePromiseJarVerse_(mode) {
+  var box = document.getElementById('pjar_verse_box');
+  var full = box ? box.textContent.trim() : '';
+  var parts = full.split('” — ');
+  var txt = (parts.shift() || '').replace(/^“/, '').trim();
+  var ref = (parts.shift() || 'Scripture Promise').trim();
+  closeModal();
+  if (mode === 'save') {
+    if (all('verses').some(function(x) { return x.ref === ref; })) { toast('Already in your Scripture tab.'); return; }
+    put('verses', { ref: ref, text: txt, tr: 'KJV', topic: 'Promise Jar', memory: false, created: Date.now(), date: today() });
+    toast('Saved ' + ref + ' to Scripture!');
+  } else if (mode === 'journal') {
+    editEntry(null, 'soap', { type: 'soap', date: today(), ref: ref + ' (KJV)', s: txt });
+  } else if (mode === 'card') {
+    openVerseCard(ref, txt, 'KJV');
+  }
+}
+
 function drawPromiseJar() {
   seedDynamicHeartAndPromises_().then(function() {
     var box = document.getElementById('pjar_verse_box');
@@ -1203,12 +1244,18 @@ function drawPromiseJar() {
   var pick = PROMISE_JAR[Math.floor(Math.random() * PROMISE_JAR.length)];
   openModal('🏺 A Promise For You',
     '<div style="text-align:center; padding:10px 6px;">' +
-    '  <div id="pjar_verse_box" style="font-family:var(--serif); font-style:italic; font-size:21px; line-height:1.5; color:var(--ink); background:var(--gold2); border:1.5px solid var(--gold); padding:18px; border-radius:16px; margin-bottom:14px;">' + esc(pick) + '</div>' +
+    '  <div id="pjar_verse_box" style="font-family:var(--serif); font-style:italic; font-size:21px; line-height:1.5; color:var(--ink); background:var(--gold2); border:1.5px solid var(--gold); padding:18px; border-radius:16px; margin-bottom:12px;">' + esc(pick) + '</div>' +
+    '  <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">' +
+    '    <button type="button" class="btn sm" onclick="usePromiseJarVerse_(\'save\')">' + ic('star') + 'Save Verse</button>' +
+    '    <button type="button" class="btn sm" onclick="usePromiseJarVerse_(\'journal\')">' + ic('edit') + 'SOAP Journal</button>' +
+    '    <button type="button" class="btn sm" onclick="usePromiseJarVerse_(\'card\')">&#127807; Share Card</button>' +
+    '  </div>' +
     '  <p class="mu sm" style="margin:0;">Hold onto this word today—His promises never fail.</p>' +
     '</div>',
     '<button class="btn" onclick="drawPromiseJar()">Draw Another</button><button class="btn pri" onclick="closeModal()">Amen</button>'
   );
 }
+
 
 
 
@@ -1262,7 +1309,13 @@ function vToday() {
     h += '      <div class="mu sm" style="flex:1; min-width:180px;">' + esc(activeM.note) + '</div>';
     h += '      <button type="button" class="btn sm ghost" style="color:var(--rose-d); font-weight:600;" onclick="pickHeartMood(\'' + UI.heartMood + '\')">↻ Another Verse (' + (idx + 1) + '/' + listItems.length + ')</button>';
     h += '    </div>';
+    h += '    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; padding-top:8px; border-top:1px solid rgba(217,107,39,0.2);">';
+    h += '      <button type="button" class="btn sm" style="background:var(--card);" onclick="useHeartMoodVerse_(\'save\')">' + ic('star') + 'Save Verse</button>';
+    h += '      <button type="button" class="btn sm" style="background:var(--card);" onclick="useHeartMoodVerse_(\'journal\')">' + ic('edit') + 'SOAP Journal</button>';
+    h += '      <button type="button" class="btn sm" style="background:var(--card);" onclick="useHeartMoodVerse_(\'card\')">&#127807; Card</button>';
+    h += '    </div>';
     h += '  </div>';
+
   }
   h += '</div>';
 
