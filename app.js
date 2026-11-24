@@ -286,7 +286,15 @@ function getLocalDb_() {
   try {
     var raw = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}');
     var db = {};
-    TABLES.forEach(function(t) { db[t] = Array.isArray(raw[t]) ? raw[t] : []; });
+    TABLES.forEach(function(t) {
+      if (Array.isArray(raw[t])) {
+        db[t] = raw[t];
+      } else if (raw[t] && typeof raw[t] === 'object') {
+        db[t] = Object.values(raw[t]);
+      } else {
+        db[t] = [];
+      }
+    });
     return db;
   } catch (e) {
     var empty = {};
@@ -297,6 +305,7 @@ function getLocalDb_() {
 
 function saveLocalDb_(db) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(db));
+}
 }
 
 async function lookupSingleVerseOffline_(refStr, ver) {
