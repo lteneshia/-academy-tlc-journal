@@ -3826,12 +3826,48 @@ var GM = { mode: 'trivia', cat: 'All', idx: 0, streak: 0, picked: null, built: [
 
 
 
+var DYNAMIC_VERSE_POOL = [];
+
+async function ensureDynamicBiblePool_() {
+  if (DYNAMIC_VERSE_POOL.length >= 40) return DYNAMIC_VERSE_POOL;
+  try {
+    var bible = await loadLocalBible(UI.bibleVersion || 'KJV');
+    ['Proverbs', 'Psalms', 'Matthew', 'John', 'Romans', 'Philippians', 'Ephesians', 'James', '1 John', 'Isaiah'].forEach(function(bk) {
+      var bObj = bible[bk];
+      if (!bObj) return;
+      Object.keys(bObj).forEach(function(chNum, i) {
+        if (i % 2 !== 0) return;
+        var vObj = bObj[chNum] || {};
+        Object.keys(vObj).forEach(function(vNum) {
+          var txt = String(vObj[vNum] || '').trim();
+          var words = txt.split(/\s+/);
+          if (words.length >= 6 && words.length <= 15) {
+            DYNAMIC_VERSE_POOL.push({ ref: bk + ' ' + chNum + ':' + vNum, text: txt, topic: bk });
+          }
+        });
+      });
+    });
+    DYNAMIC_VERSE_POOL.sort(function() { return Math.random() - 0.5; });
+    DYNAMIC_VERSE_POOL = DYNAMIC_VERSE_POOL.slice(0, 250);
+  } catch (e) {}
+  return DYNAMIC_VERSE_POOL;
+}
+
 function initScramble() {
-  var item = GAME_SCRAMBLE[GM.idx % GAME_SCRAMBLE.length];
-  var words = item.text.split(' ').map(function(w, i) { return { w: w, id: i }; });
-  GM.pool = words.slice().sort(function() { return Math.random() - 0.5; });
+  ensureDynamicBiblePool_().then(function(pool) {
+    if (pool && pool.length && !GM.built.length) {
+      GM.activeScramble = pool[Math.floor(Math.random() * pool.length)];
+      GM.pool = GM.activeScramble.text.split(/\s+/).map(function(w, i) { return { w: w, id: i }; }).sort(function() { return Math.random() - 0.5; });
+      if (GM.mode === 'scramble') render();
+    }
+  });
+  var fallback = GM.activeScramble || GAME_SCRAMBLE[GM.idx % GAME_SCRAMBLE.length];
+  GM.activeScramble = fallback;
+  GM.pool = fallback.text.split(/\s+/).map(function(w, i) { return { w: w, id: i }; }).sort(function() { return Math.random() - 0.5; });
   GM.built = [];
 }
+
+
 
 
 function selectTriviaCat(idx) {
@@ -3958,7 +3994,8 @@ function vGame() {
     h += '</div>';
   } else if (GM.mode === 'scramble') {
     if (!GM.pool.length && !GM.built.length) initScramble();
-    var sc = GAME_SCRAMBLE[GM.idx % GAME_SCRAMBLE.length];
+    var sc = GM.activeScramble || GAME_SCRAMBLE[GM.idx % GAME_SCRAMBLE.length];
+
     var solved = GM.built.map(function(x) { return x.w; }).join(' ') === sc.text;
     h += '<div class="card" style="padding:22px;">';
     h += '  <div class="ey" style="margin-bottom:4px;">Unscramble the Scripture</div>';
@@ -3974,18 +4011,17 @@ function vGame() {
       h += '    <button class="btn sm" onclick="pickScramble(' + pIdx + ')">' + esc(item.w) + '</button>';
     });
     h += '  </div>';
-    if (solved) {
+      if (solved) {
       h += '  <div style="padding:12px 14px; border-radius:12px; background:var(--sage2); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">';
       h += '    <span><b>Amen!</b> You unscrambled <i>' + esc(sc.ref) + '</i>!</span>';
-      h += '    <button class="btn sm pri" onclick="GM.streak++;saveDailyGameStreak();GM.idx++;initScramble();render()">Next Verse ' + ic('next') + '</button>';
+      h += '    <button class="btn sm pri" onclick="GM.streak++;saveDailyGameStreak();GM.activeScramble=null;GM.idx++;initScramble();render()">Next Verse ' + ic('next') + '</button>';
       h += '  </div>';
     } else {
       h += '  <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">';
       h += (GM.built.length ? '<button class="btn sm ghost" onclick="initScramble();render()">Reset Words</button>' : '<span></span>');
-      h += '    <button class="btn sm ghost" onclick="GM.idx++;initScramble();render()">Skip Verse ' + ic('next') + '</button>';
+      h += '    <button class="btn sm ghost" onclick="GM.activeScramble=null;GM.idx++;initScramble();render()">Skip Verse ' + ic('next') + '</button>';
       h += '  </div>';
-    }
-    h += '</div>';
+
   } else if (GM.mode === 'versematch') {
     h += renderVerseMatchCard();
       } else if (GM.mode === 'whoami') {
@@ -4188,26 +4224,12 @@ function saveDailyGameStreak() {
 var VM_STATE = { current: null, options: [], picked: null };
 
 function getVerseMatchPool() {
-  var pool = [];
-  var seen = {};
-  all('verses').forEach(function(v) {
-    if (v && v.ref && v.text && !seen[v.ref]) {
-      seen[v.ref] = 1;
-      pool.push({ ref: v.ref, text: v.text, topic: v.topic || 'Saved Scripture' });
-    }
-  });
-  SYSTEM_VERSES.forEach(function(sv) {
-    var copy = sv.slice();
-    var r = copy.shift();
-    var t = copy.shift();
-    var tp = copy.shift();
-    if (r && t && !seen[r]) {
-      seen[r] = 1;
-      pool.push({ ref: r, text: t, topic: tp || 'Memory Verse' });
-    }
-  });
+  ensureDynamicBiblePool_();
+  var pool = DYNAMIC_VERSE_POOL.slice();
+  SYSTEM_VERSES.forEach(function(sv) { pool.push({ ref: sv, text: sv, topic: sv || 'Memory Verse' }); });
   return pool;
 }
+
 
 function initVerseMatch() {
   var pool = getVerseMatchPool();
