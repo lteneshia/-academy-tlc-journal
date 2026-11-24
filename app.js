@@ -4087,7 +4087,7 @@ function vGame() {
     h += '    </div>';
     h += '    <div style="display:flex; gap:6px; flex-wrap:wrap;">';
     h += '      <button type="button" class="btn sm" style="border-color:var(--gold);" onclick="shuffleWsPuzzle()">🔀 Shuffle</button>';
-    h += '      <button type="button" class="btn sm" onclick="selectWsPuzzle(' + ((activeWsIdx + 1) % totalWs) + ')">Next ' + ic('next') + '</button>';
+    h += '      <button type="button" class="btn sm" onclick="shuffleWsPuzzle()">Next ' + ic('next') + '</button>';
     h += '    </div>';
     h += '  </div>';
 
@@ -4655,23 +4655,39 @@ var CW_WORD_BANK = [
 
 function generateDynamicCrossword_() {
   var pick = CW_WORD_BANK.slice().sort(function() { return Math.random() - 0.5; });
-  var a1 = pick, a2 = pick, d1 = null;
-  for (var i = 2; i < pick.length; i++) {
-    if (pick[i].charAt(0) === a1.charAt(2) && pick[i].charAt(2) === a2.charAt(2)) { d1 = pick[i]; break; }
+  var a1 = pick.shift(), a2 = pick.shift(), d1 = null;
+  var w1 = a1.slice(0, 1).pop(), c1 = a1.slice(1, 2).pop();
+  var w2 = a2.slice(0, 1).pop(), c2 = a2.slice(1, 2).pop();
+  for (var i = 0; i < pick.length; i++) {
+    var cand = pick.slice(i, i + 1).pop();
+    var w3 = cand.slice(0, 1).pop();
+    if (w3.charAt(0) === w1.charAt(2) && w3.charAt(2) === w2.charAt(2)) {
+      d1 = cand;
+      break;
+    }
   }
   if (!d1) return null;
+  var wDown = d1.slice(0, 1).pop(), cDown = d1.slice(1, 2).pop();
   var g = [];
-  for (var r = 0; r < 7; r++) g[r] = ['#','#','#','#','#','#','#'];
-  for (var c = 0; c < 4; c++) { g[c] = a1.charAt(c); g[c] = a2.charAt(c); }
-  for (var k = 0; k < 4; k++) g[k] = d1.charAt(k);
+  for (var r = 0; r < 7; r++) g.push(['#', '#', '#', '#', '#', '#', '#']);
+  for (var c = 0; c < 4; c++) {
+    g.splice(c, 1, w1.charAt(c));
+    g.splice(c, 1, w2.charAt(c));
+  }
+  for (var k = 0; k < 4; k++) {
+    g[k].splice(2, 1, wDown.charAt(k));
+  }
   return {
-    level: 'Dynamic', title: 'Scripture Mini-Crossword #' + (CW_PUZZLES.length + 1), size: 7,
+    level: 'Dynamic',
+    title: 'Scripture Mini-Crossword #' + (CW_PUZZLES.length + 1),
+    size: 7,
     rows: g.map(function(row) { return row.join(' '); }),
     nums: { '0-0': 1, '0-2': 2, '2-0': 3 },
-    across: ['1. ' + a1, '3. ' + a2],
-    down: ['2. ' + d1]
+    across: ['1. ' + c1, '3. ' + c2],
+    down: ['2. ' + cDown]
   };
 }
+
 
 function initCrossword() {
   CW_STATE.inputs = {};
