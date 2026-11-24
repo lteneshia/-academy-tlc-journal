@@ -1850,7 +1850,7 @@ function tapSecretAdmin_() {
 
 
 
- function vPrayerWall() {
+function vPrayerWall() {
   var isAdm = isPrayerAdminUnlocked_();
   var h = '<div onclick="if(event.target.tagName===\'H1\')tapSecretAdmin_()">' +
     ph('Prayer Wall', 'Community', 'Stand in agreement with our Academy T.L.C. family, or send a prayer request to our team.',
@@ -1859,8 +1859,6 @@ function tapSecretAdmin_() {
       (isAdm ? '<button type="button" class="btn" onclick="openPrayerAdminModal()">Lock Admin</button>' : '') +
       '<button class="btn pri" onclick="openGroupPrayerForm()">' + ic('plus') + ' Submit Request</button></div>') +
     '</div>';
-
-
 
   if (!window._groupPrayers) {
     setTimeout(loadGroupPrayers, 50);
@@ -1875,9 +1873,19 @@ function tapSecretAdmin_() {
 
   var prayedMap = (S.settings.groupWallPrayed && S.settings.groupWallPrayed.data) || {};
   var myTokens = JSON.parse(localStorage.getItem('tlc_my_prayer_tokens') || '[]');
+  var hiddenIds = JSON.parse(localStorage.getItem('tlc_hidden_prayers_v1') || '[]');
   var todayStr = today();
 
-  h += '<div class="stack" style="gap:12px;">' + list.map(function(item) {
+  var visibleList = list.filter(function(item) {
+    return isAdm || hiddenIds.indexOf(String(item.id)) === -1;
+  });
+
+  if (!visibleList.length) {
+    return h + empty('No community requests to display', 'Have a prayer need on your heart? Tap Submit Request above to send it privately to our team or request it on the wall.',
+      '<button class="btn pri" onclick="openGroupPrayerForm()">' + ic('plus') + ' Submit Prayer Request</button>');
+  }
+
+  h += '<div class="stack" style="gap:12px;">' + visibleList.map(function(item) {
     var isPrayed = !!prayedMap[item.id + '_' + todayStr];
     var isPending = item.status === 'pending';
     var isMine = item.owner_token && myTokens.indexOf(item.owner_token) >= 0;
@@ -1896,6 +1904,9 @@ function tapSecretAdmin_() {
     if (isAdm) {
       actions += '<button type="button" class="btn sm" style="color:var(--rose);" onclick="runPrayerWallAction(\'' + esc(item.id) + '\',\'delete\',\'\')">Delete</button>';
     }
+    if (!isMine && !isPending) {
+      actions += '<button type="button" class="btn sm ghost" style="margin-left:auto;color:var(--mu);font-size:12px;" onclick="reportWallPrayer(\'' + esc(item.id) + '\')">⚑ Report / Hide</button>';
+    }
 
     return '<div class="card" style="padding:18px 20px; border-left:4px solid ' + borderCol + ';">' +
       '<div class="hd" style="gap:10px; flex-wrap:wrap;">' +
@@ -1908,11 +1919,21 @@ function tapSecretAdmin_() {
       '  <button type="button" class="pray' + (isPrayed ? ' on' : '') + '" onclick="toggleGroupWallPrayed(\'' + esc(item.id) + '\')">' + ic(isPrayed ? 'check' : 'prayers') + (isPrayed ? 'Prayed Today' : 'I Prayed') + '</button>' +
       '</div>' +
       (item.details ? '<p style="margin:8px 0 0; font-size:15px; line-height:1.5; color:var(--ink);">' + nl(item.details) + '</p>' : '') +
-      (actions ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">' + actions + '</div>' : '') +
+      (actions ? '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;">' + actions + '</div>' : '') +
       '</div>';
   }).join('') + '</div>';
 
   return h;
+}
+
+function reportWallPrayer(id) {
+  confirmBox('Report and hide this post from your Prayer Wall? Our ministry team reviews flagged posts within 24 hours.', 'Report & Hide', function() {
+    var hidden = JSON.parse(localStorage.getItem('tlc_hidden_prayers_v1') || '[]');
+    if (hidden.indexOf(String(id)) === -1) hidden.push(String(id));
+    localStorage.setItem('tlc_hidden_prayers_v1', JSON.stringify(hidden));
+    toast('Post hidden & reported to Academy T.L.C. moderation.');
+    render();
+  });
 }
 
 
@@ -2745,7 +2766,8 @@ function vSettings() {
     '<button class="btn sm" onclick="backup()">Download a backup</button><label class="btn sm">Restore a backup<input type="file" accept=".json,application/json" hidden onchange="restore(this.files)"></label></div></div>';
   h += '<div class="card"><h3>Example journal</h3><p class="sm mu">Fill the journal with example prayers and entries to see how everything works. Clear it when you are ready to start.</p><div class="row" style="flex-wrap:wrap"><button class="btn sm" onclick="confirmBox(\'This adds example prayers, entries and verses to your journal.\',\'Add examples\',function(){loadDemo();go(\'today\')})">See an example journal</button>' +
     '<button class="btn sm ghost" onclick="confirmBox(\'This permanently erases every prayer, entry, verse and reading plan in this journal. Download a backup first if you want to keep anything.\',\'Erase everything\',eraseAll)" style="color:#A2453F">Erase everything</button></div></div></div>';
-  h += divider() + '<p class="mu sm" style="text-align:center">Prayer Journal by T.L.C · Academy of The Lord\'s Children · Daily verses are from the King James Version.</p>';
+ h += divider() + '<p class="mu sm" style="text-align:center">Prayer Journal by T.L.C · Academy of The Lord\'s Children · Daily verses are from the King James Version.<br><a href="https://lteneshia.github.io/academy-tlc-privacy/" target="_blank" rel="noopener" style="color:var(--rose-d);font-weight:600;text-decoration:underline;display:inline-block;margin-top:6px;">Privacy Policy &amp; Terms</a></p>';
+
   return h;
 }
 
@@ -3363,16 +3385,22 @@ function vBible() {
   UI.bibleVersion = UI.bibleVersion || 'KJV';
 
   var h = ph('Bible Reader', 'Holy Scripture', 'Select a translation, book, and chapter to read from your database. Choosing a verse from the dropdown menu will automatically scroll to it. Clicking a verse gives you the option to highlight it.');
-  
-   // Mobile-Friendly Version Switcher + Audio Read Aloud
+
   var kjvStyle = UI.bibleVersion === 'KJV' ? 'background:var(--rose);color:#fff;font-weight:600;' : 'background:var(--card);color:var(--ink);';
   var bsbStyle = UI.bibleVersion === 'BSB' ? 'background:var(--rose);color:#fff;font-weight:600;' : 'background:var(--card);color:var(--ink);';
   var audioStyle = window._bibleSpeaking ? 'background:var(--gold);color:#fff;border-color:var(--gold);font-weight:600;' : 'background:var(--gold2);color:var(--ink);border-color:var(--gold);';
-    var isEv = cfg().eveningMode === '1';
+  var isEv = cfg().eveningMode === '1';
   var evStyle = isEv ? 'background:var(--rose-d);color:#fff;border-color:var(--rose-d);font-weight:600;' : 'background:var(--card);color:var(--ink);border-color:var(--line);';
-  h += '  <button type="button" class="btn sm" style="' + evStyle + '" onclick="toggleEveningTheme()">' + (isEv ? '🕯️ Evening' : '☀️ Day') + '</button>';
+  var fontSize = parseInt(cfg().bibleFontSize, 10) || 18;
+  var audioLabel = window._bibleSpeaking ? '⏹ Stop' : '🔊 Listen';
 
-  var audioLabel = window._bibleSpeaking ? '&#9209; Stop' : '&#128266; Listen';
+  h += '<div style="display:flex; gap:8px; margin-bottom:10px; width:100%; flex-wrap:wrap; align-items:center;">';
+  h += '  <button type="button" class="btn sm" style="' + evStyle + '" onclick="toggleEveningTheme()">' + (isEv ? '🕯️ Evening' : '☀️ Day') + '</button>';
+  h += '  <div style="display:flex; gap:4px; margin-left:auto;">';
+  h += '    <button type="button" class="btn sm" style="padding:6px 10px;" aria-label="Decrease text size" onclick="stepBibleFont(-2)">A-</button>';
+  h += '    <button type="button" class="btn sm" style="padding:6px 10px;" aria-label="Increase text size" onclick="stepBibleFont(2)">A+</button>';
+  h += '  </div>';
+  h += '</div>';
 
   h += '<div style="display:flex; gap:8px; margin-bottom:14px; width:100%; flex-wrap:wrap;">';
   h += '  <button type="button" class="btn sm" style="flex:1; border-color:var(--rose); ' + kjvStyle + '" onclick="stopBibleAudio();changeBibleVersion(\'KJV\')">KJV · Classic</button>';
@@ -3380,18 +3408,15 @@ function vBible() {
   h += '  <button type="button" class="btn sm" style="' + audioStyle + '" onclick="toggleBibleAudio()">' + audioLabel + '</button>';
   h += '</div>';
 
-
-
   h += '<div class="card" style="margin-bottom: 16px; padding: 14px 20px;">';
   h += '  <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 0;">';
-  
   h += '    <div class="f" style="margin-bottom: 0;"><span>Book</span><select id="b_book" onchange="changeBibleBook(this.value)">';
   BOOKS.forEach(function(bk) {
     var bName = String(bk.slice(0, 1));
     h += '      <option value="' + bName + '"' + (UI.bibleBook === bName ? ' selected' : '') + '>' + bName + '</option>';
   });
   h += '    </select></div>';
-  
+
   var currentBookDef = BOOKS.filter(function(b) { return String(b.slice(0, 1)) === UI.bibleBook; }).shift() || BOOKS.slice(0, 1).shift();
   var totalChapters = parseInt(currentBookDef.slice(1, 2), 10) || 50;
 
@@ -3408,33 +3433,69 @@ function vBible() {
     h += '      <option value="' + v + '"' + (String(UI.bibleVerse) === String(v) ? ' selected' : '') + '>Vs. ' + v + '</option>';
   }
   h += '    </select></div>';
-  
   h += '  </div>';
   h += '</div>';
 
   h += '<div class="card" style="min-height: 300px;">';
   h += '  <div id="bible_text_loading" class="mu" style="display:none;">' + ic('today', 'spin') + ' Loading ' + esc(UI.bibleVersion) + ' scripture text...</div>';
-  h += '  <div id="bible_text_body" class="read" style="font-family: var(--serif); font-size: 18px; line-height: 1.65; color: var(--ink);">';
+  h += '  <div id="bible_text_body" class="read" style="font-family: var(--serif); font-size: ' + fontSize + 'px; line-height: 1.65; color: var(--ink);">';
   h += '    <p class="mu">Select a passage above to load text details.</p>';
+  h += '  </div>';
+  h += '  <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px; padding-top:14px; border-top:1px solid var(--line);">';
+  h += '    <button type="button" class="btn sm" onclick="stepBibleChapter(-1)">&lsaquo; Previous Chapter</button>';
+  h += '    <button type="button" class="btn sm" onclick="stepBibleChapter(1)">Next Chapter &rsaquo;</button>';
   h += '  </div>';
   h += '</div>';
 
-
-    h += '<div id="bible_verse_bar" style="display:none; position:sticky; bottom:74px; z-index:25; margin-top:12px; background:var(--card); border:2px solid var(--gold); border-radius:16px; padding:12px 14px; box-shadow:0 8px 24px rgba(15,74,83,0.18);">';
+  h += '<div id="bible_verse_bar" style="display:none; position:sticky; bottom:74px; z-index:25; margin-top:12px; background:var(--card); border:2px solid var(--gold); border-radius:16px; padding:12px 14px; box-shadow:0 8px 24px rgba(15,74,83,0.18);">';
   h += '  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
   h += '    <b id="bible_bar_ref" style="color:var(--rose-d); font-size:14px;"></b>';
   h += '    <button type="button" class="iconbtn" style="width:28px;height:28px;" onclick="closeBibleVerseBar()">' + ic('close') + '</button>';
   h += '  </div>';
   h += '  <div style="display:flex; gap:8px; flex-wrap:wrap;">';
-  h += '    <button type="button" class="btn sm" style="background:var(--gold2); border-color:var(--gold);" onclick="toggleBibleHighlight()">&#10024; Highlight</button>';
+  h += '    <button type="button" class="btn sm" style="background:var(--gold2); border-color:var(--gold);" onclick="toggleBibleHighlight()">✨ Highlight</button>';
   h += '    <button type="button" class="btn sm" onclick="saveTappedBibleVerse()">' + ic('star') + ' Save Verse</button>';
   h += '    <button type="button" class="btn sm pri" onclick="journalTappedBibleVerse()">' + ic('edit') + ' SOAP Journal</button>';
   h += '  </div>';
   h += '</div>';
 
-
   setTimeout(loadActiveBibleText, 50);
   return h;
+}
+
+function stepBibleFont(delta) {
+  var cur = parseInt(cfg().bibleFontSize, 10) || 18;
+  var next = Math.max(14, Math.min(28, cur + delta));
+  setCfg('bibleFontSize', String(next));
+  var el = document.getElementById('bible_text_body');
+  if (el) el.style.fontSize = next + 'px';
+  toast('Scripture text size: ' + next + 'px');
+}
+
+function stepBibleChapter(dir) {
+  stopBibleAudio();
+  var idx = -1;
+  BOOKS.forEach(function(b, i) { if (String(b.slice(0, 1)) === UI.bibleBook) idx = i; });
+  if (idx < 0) return;
+  var curCh = parseInt(UI.bibleChapter, 10) || 1;
+  var maxCh = parseInt(BOOKS.slice(idx, idx + 1).shift().slice(1, 2), 10) || 1;
+  if (dir > 0) {
+    if (curCh < maxCh) { UI.bibleChapter = String(curCh + 1); }
+    else if (idx + 1 < BOOKS.length) {
+      UI.bibleBook = String(BOOKS.slice(idx + 1, idx + 2).shift().slice(0, 1));
+      UI.bibleChapter = '1';
+    } else { toast('You have reached the end of Revelation!'); return; }
+  } else {
+    if (curCh > 1) { UI.bibleChapter = String(curCh - 1); }
+    else if (idx - 1 >= 0) {
+      var prevDef = BOOKS.slice(idx - 1, idx).shift();
+      UI.bibleBook = String(prevDef.slice(0, 1));
+      UI.bibleChapter = String(prevDef.slice(1, 2));
+    } else { toast('You are at Genesis 1.'); return; }
+  }
+  UI.bibleVerse = 'All';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  render();
 }
 
 function changeBibleVersion(ver) {
