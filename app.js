@@ -1140,14 +1140,54 @@ var PROMISE_JAR = [
   '“Great is thy faithfulness.” — Lamentations 3:23'
 ];
 
+var _moodBibleSeeded = false;
+var MOOD_RULES = {
+  peaceful: { rx: /\b(peace|still|quiet|calm|rest)\b/i, note: 'Let the Prince of Peace guard your heart and mind today.' },
+  grateful: { rx: /\b(thank|thanks|thanksgiving|praise|rejoice|goodness)\b/i, note: 'Every good and perfect gift flows from our faithful Father.' },
+  hopeful:  { rx: /\b(hope|wait|promise|renew|future|trust)\b/i, note: 'Your hope is anchored securely in Christ—He is faithful.' },
+  weary:    { rx: /\b(weary|heavy|strength|weak|faint|burden|rest)\b/i, note: 'Lean on His everlasting arms—His grace is sufficient for you.' },
+  comfort:  { rx: /\b(comfort|broken|tear|afraid|fear not|refuge|with thee)\b/i, note: 'The Lord is near to you right now and holds you close.' }
+};
+
+function seedDynamicHeartAndPromises_() {
+  if (_moodBibleSeeded) return Promise.resolve();
+  return loadLocalBible(UI.bibleVersion || 'KJV').then(function(bible) {
+    if (_moodBibleSeeded || !bible) return;
+    _moodBibleSeeded = true;
+    var books = ['Psalms', 'Proverbs', 'Isaiah', 'Jeremiah', 'Matthew', 'John', 'Romans', 'Philippians', 'Ephesians', '2 Corinthians', '1 Peter'];
+    books.forEach(function(bk) {
+      var bObj = bible[bk];
+      if (!bObj) return;
+      Object.keys(bObj).forEach(function(chNum) {
+        var vObj = bObj[chNum] || {};
+        Object.keys(vObj).forEach(function(vNum) {
+          var txt = String(vObj[vNum] || '').trim();
+          if (txt.length < 35 || txt.length > 185) return;
+          var formatted = '“' + txt + '” — ' + bk + ' ' + chNum + ':' + vNum;
+          if (/\b(I will|shall|blessed|grace|faithful|love)\b/i.test(txt) && PROMISE_JAR.length < 150 && PROMISE_JAR.indexOf(formatted) < 0) {
+            PROMISE_JAR.push(formatted);
+          }
+          Object.keys(MOOD_RULES).forEach(function(mKey) {
+            var list = HEART_MOODS[mKey].items;
+            if (list.length < 30 && MOOD_RULES[mKey].rx.test(txt) && !list.some(function(x) { return x.verse === formatted; })) {
+              list.push({ verse: formatted, note: MOOD_RULES[mKey].note });
+            }
+          });
+        });
+      });
+    });
+  }).catch(function() {});
+}
+
 function pickHeartMood(key) {
   UI.heartMoodIdx = UI.heartMoodIdx || {};
+  seedDynamicHeartAndPromises_().then(function() { render(); });
   if (UI.heartMood === key) {
     UI.heartMoodIdx[key] = ((UI.heartMoodIdx[key] || 0) + 1);
   } else {
     UI.heartMood = key;
     if (UI.heartMoodIdx[key] === undefined) {
-      UI.heartMoodIdx[key] = Math.floor(Math.random() * 5);
+      UI.heartMoodIdx[key] = Math.floor(Math.random() * HEART_MOODS[key].items.length);
     } else {
       UI.heartMoodIdx[key] = (UI.heartMoodIdx[key] + 1);
     }
@@ -1156,15 +1196,20 @@ function pickHeartMood(key) {
 }
 
 function drawPromiseJar() {
+  seedDynamicHeartAndPromises_().then(function() {
+    var box = document.getElementById('pjar_verse_box');
+    if (box) box.textContent = PROMISE_JAR[Math.floor(Math.random() * PROMISE_JAR.length)];
+  });
   var pick = PROMISE_JAR[Math.floor(Math.random() * PROMISE_JAR.length)];
   openModal('🏺 A Promise For You',
     '<div style="text-align:center; padding:10px 6px;">' +
-    '  <div style="font-family:var(--serif); font-style:italic; font-size:21px; line-height:1.5; color:var(--ink); background:var(--gold2); border:1.5px solid var(--gold); padding:18px; border-radius:16px; margin-bottom:14px;">' + esc(pick) + '</div>' +
+    '  <div id="pjar_verse_box" style="font-family:var(--serif); font-style:italic; font-size:21px; line-height:1.5; color:var(--ink); background:var(--gold2); border:1.5px solid var(--gold); padding:18px; border-radius:16px; margin-bottom:14px;">' + esc(pick) + '</div>' +
     '  <p class="mu sm" style="margin:0;">Hold onto this word today—His promises never fail.</p>' +
     '</div>',
     '<button class="btn" onclick="drawPromiseJar()">Draw Another</button><button class="btn pri" onclick="closeModal()">Amen</button>'
   );
 }
+
 
 
 /* ---------- TODAY ---------- */
