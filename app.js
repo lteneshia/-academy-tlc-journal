@@ -306,7 +306,7 @@ function getLocalDb_() {
 function saveLocalDb_(db) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(db));
 }
-}
+
 
 async function lookupSingleVerseOffline_(refStr, ver) {
   var cleanRef = String(refStr || '').trim();
