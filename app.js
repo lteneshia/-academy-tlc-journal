@@ -4227,16 +4227,55 @@ function selectWsPuzzle(idx) {
   render();
 }
 
-function shuffleWsPuzzle() {
-  var totalWs = WS_PUZZLES.length;
-  if (totalWs <= 1) return;
-  var nextIdx = GM.wsIdx % totalWs;
-  while (nextIdx === (GM.wsIdx % totalWs)) {
-    nextIdx = Math.floor(Math.random() * totalWs);
+function generateDynamicWordSearch_() {
+  var stop = { THE:1, AND:1, THAT:1, FOR:1, WITH:1, UNTO:1, SHALL:1, THEY:1, THEM:1, THEIR:1, FROM:1, WHICH:1, HAVE:1, HATH:1, UPON:1, INTO:1, YOUR:1, LORD:1, THIS:1, WILL:1, NOT:1, BUT:1, ALL:1 };
+  var src = DYNAMIC_VERSE_POOL.length ? DYNAMIC_VERSE_POOL : GAME_SCRAMBLE;
+  var sample = src[Math.floor(Math.random() * src.length)] || GAME_SCRAMBLE;
+  var raw = sample.text.toUpperCase().replace(/[^A-Z\s]/g, '').split(/\s+/).filter(function(w) { return w.length >= 4 && w.length <= 8 && !stop[w]; });
+  var uniq = [];
+  raw.forEach(function(w) { if (uniq.indexOf(w) < 0 && uniq.length < 5) uniq.push(w); });
+  if (uniq.length < 4) return null;
+
+  var cols = 9, rows = 8, grid = [], placed = [];
+  for (var r = 0; r < rows; r++) { grid[r] = []; for (var c = 0; c < cols; c++) grid[r][c] = ''; }
+  uniq.forEach(function(word) {
+    for (var tries = 0; tries < 40; tries++) {
+      var horiz = Math.random() < 0.65;
+      var r0 = Math.floor(Math.random() * (horiz ? rows : rows - word.length + 1));
+      var c0 = Math.floor(Math.random() * (horiz ? cols - word.length + 1 : cols));
+      var ok = true;
+      for (var i = 0; i < word.length; i++) {
+        var cur = grid[r0 + (horiz ? 0 : i)][c0 + (horiz ? i : 0)];
+        if (cur && cur !== word[i]) { ok = false; break; }
+      }
+      if (ok) {
+        for (var j = 0; j < word.length; j++) grid[r0 + (horiz ? 0 : j)][c0 + (horiz ? j : 0)] = word[j];
+        placed.push(word);
+        break;
+      }
+    }
+  });
+  if (placed.length < 3) return null;
+  var abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  for (var r2 = 0; r2 < rows; r2++) {
+    for (var c2 = 0; c2 < cols; c2++) if (!grid[r2][c2]) grid[r2][c2] = abc.charAt(Math.floor(Math.random() * abc.length));
   }
-  selectWsPuzzle(nextIdx);
-  toast('Shuffled to a new Word Search!');
+  return { title: 'Scripture Hunt: ' + sample.ref, words: placed, rows: grid.map(function(row) { return row.join(' '); }) };
 }
+
+function shuffleWsPuzzle() {
+  ensureDynamicBiblePool_().then(function() {
+    var fresh = generateDynamicWordSearch_();
+    if (fresh) {
+      WS_PUZZLES.push(fresh);
+      selectWsPuzzle(WS_PUZZLES.length - 1);
+      toast('Generated a new Scripture Word Search!');
+    } else {
+      selectWsPuzzle((GM.wsIdx + 1) % WS_PUZZLES.length);
+    }
+  });
+}
+
 
 
 
@@ -4369,7 +4408,25 @@ var WAI_STATE = { idx: 0, picked: null };
 
 function initWhoAmI() {
   WAI_STATE.picked = null;
+  ensureDynamicBiblePool_().then(function(pool) {
+    if (pool && pool.length >= 10 && WHO_AM_I_DATA.length < 60) {
+      var allBooks = ['Proverbs', 'Psalms', 'Matthew', 'John', 'Romans', 'Philippians', 'Ephesians', 'James', '1 John', 'Isaiah'];
+      pool.slice(0, 45).forEach(function(v) {
+        var others = allBooks.filter(function(b) { return b !== v.topic; }).sort(function() { return Math.random() - 0.5; }).slice(0, 3);
+        others.push(v.topic);
+        others.sort(function() { return Math.random() - 0.5; });
+        WHO_AM_I_DATA.push({
+          clue: 'I am the book of the Bible where this verse is written: “' + v.text + '”',
+          ans: v.topic,
+          opts: others,
+          ref: v.ref
+        });
+      });
+      WHO_AM_I_DATA.sort(function() { return Math.random() - 0.5; });
+    }
+  });
 }
+
 
 function renderWhoAmICard() {
   var total = WHO_AM_I_DATA.length;
@@ -4573,10 +4630,56 @@ var CW_PUZZLES = [
 
 var CW_STATE = { idx: 0, inputs: {}, solved: false };
 
+var CW_WORD_BANK = [
+  ['NOAH', 'Built the ark before the great flood (Gen. 6)'],
+  ['RUTH', 'Loyal Moabite widow who gleaned in Boaz\'s field'],
+  ['AMOS', 'Shepherd prophet who called for justice to roll down'],
+  ['EZRA', 'Scribe and priest who led exiles back from Babylon'],
+  ['EDEN', 'Garden where God placed Adam and Eve (Gen. 2)'],
+  ['ZION', 'Biblical name for Jerusalem, the city of David'],
+  ['AMEN', 'Closing word of prayer meaning "so be it"'],
+  ['LAMB', 'Behold the _____ of God who takes away sin (John 1:29)'],
+  ['HOPE', 'Anchor of the soul, both sure and steadfast (Heb. 6:19)'],
+  ['LOVE', 'The greatest of faith, hope, and _____ (1 Cor. 13:13)'],
+  ['PRAY', 'Talk with God; _____ without ceasing (1 Thess. 5:17)'],
+  ['KING', 'Title of Jesus, _____ of kings (Rev. 19:16)'],
+  ['CANA', 'Town where Jesus turned water into wine (John 2)'],
+  ['NILE', 'River in Egypt where baby Moses was hidden in a basket'],
+  ['SAUL', 'First king of Israel before David (1 Sam. 10)'],
+  ['PAUL', 'Apostle to the Gentiles who wrote Romans and Philippians'],
+  ['JOHN', 'Beloved disciple who wrote the fourth Gospel'],
+  ['LUKE', 'Physician who wrote the third Gospel and Acts'],
+  ['MARK', 'Author of the shortest Gospel in the New Testament'],
+  ['JUDE', 'Short New Testament letter right before Revelation']
+];
+
+function generateDynamicCrossword_() {
+  var pick = CW_WORD_BANK.slice().sort(function() { return Math.random() - 0.5; });
+  var a1 = pick, a2 = pick, d1 = null;
+  for (var i = 2; i < pick.length; i++) {
+    if (pick[i].charAt(0) === a1.charAt(2) && pick[i].charAt(2) === a2.charAt(2)) { d1 = pick[i]; break; }
+  }
+  if (!d1) return null;
+  var g = [];
+  for (var r = 0; r < 7; r++) g[r] = ['#','#','#','#','#','#','#'];
+  for (var c = 0; c < 4; c++) { g[c] = a1.charAt(c); g[c] = a2.charAt(c); }
+  for (var k = 0; k < 4; k++) g[k] = d1.charAt(k);
+  return {
+    level: 'Dynamic', title: 'Scripture Mini-Crossword #' + (CW_PUZZLES.length + 1), size: 7,
+    rows: g.map(function(row) { return row.join(' '); }),
+    nums: { '0-0': 1, '0-2': 2, '2-0': 3 },
+    across: ['1. ' + a1, '3. ' + a2],
+    down: ['2. ' + d1]
+  };
+}
+
 function initCrossword() {
   CW_STATE.inputs = {};
   CW_STATE.solved = false;
+  var fresh = generateDynamicCrossword_();
+  if (fresh) { CW_PUZZLES.push(fresh); CW_STATE.idx = CW_PUZZLES.length - 1; }
 }
+
 
 function renderCrosswordCard() {
   var total = CW_PUZZLES.length;
@@ -4807,23 +4910,32 @@ var CONN_PUZZLES = [
 var CONN_STATE = { idx: 0, board: [], selected: [], solvedGroups: [], mistakes: 4 };
 
 function initConnections() {
-  var total = CONN_PUZZLES.length;
-  var pz = CONN_PUZZLES.slice(CONN_STATE.idx % total, (CONN_STATE.idx % total) + 1).pop();
-  var allWords = [];
-  pz.groups.forEach(function(g) {
-    g.words.forEach(function(w) { allWords.push(w); });
+  var pool = [];
+  CONN_PUZZLES.forEach(function(p) { p.groups.forEach(function(g) { pool.push(g); }); });
+  pool.sort(function() { return Math.random() - 0.5; });
+  var chosen = [], usedWords = {};
+  pool.forEach(function(g) {
+    if (chosen.length >= 4) return;
+    if (g.words.some(function(w) { return usedWords[w]; })) return;
+    g.words.forEach(function(w) { usedWords[w] = 1; });
+    chosen.push(g);
   });
-  allWords.sort(function() { return Math.random() - 0.5; });
-  CONN_STATE.board = allWords;
+  var pz = chosen.length === 4 ? { title: 'Dynamic Connections #' + (CONN_STATE.idx + 1), groups: chosen } : CONN_PUZZLES[CONN_STATE.idx % CONN_PUZZLES.length];
+  CONN_STATE.activePuzzle = pz;
+  var allWords = [];
+  pz.groups.forEach(function(g) { g.words.forEach(function(w) { allWords.push(w); }); });
+  CONN_STATE.board = allWords.sort(function() { return Math.random() - 0.5; });
   CONN_STATE.selected = [];
   CONN_STATE.solvedGroups = [];
   CONN_STATE.mistakes = 4;
 }
 
+
 function renderConnectionsCard() {
   if (!CONN_STATE.board.length && !CONN_STATE.solvedGroups.length) initConnections();
   var total = CONN_PUZZLES.length;
-  var pz = CONN_PUZZLES.slice(CONN_STATE.idx % total, (CONN_STATE.idx % total) + 1).pop();
+  var pz = CONN_STATE.activePuzzle || CONN_PUZZLES[CONN_STATE.idx % total];
+
 
   var out = '<div class="card" style="padding:20px;">';
   out += '  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">';
@@ -4893,7 +5005,8 @@ function submitConnGuess() {
     return;
   }
   var total = CONN_PUZZLES.length;
-  var pz = CONN_PUZZLES.slice(CONN_STATE.idx % total, (CONN_STATE.idx % total) + 1).pop();
+  var pz = CONN_STATE.activePuzzle || CONN_PUZZLES[CONN_STATE.idx % total];
+
   var matchedGroup = null;
   var oneAway = false;
 
@@ -5285,8 +5398,6 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
-
-
 
 
 
