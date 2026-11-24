@@ -3369,21 +3369,6 @@ function routeToBiblePassage(passageRef) {
   go('bible');
 }
 
-  
-  var matchArray = [].slice.call(match);
-  
-  UI.bibleBook = String(matchArray.slice(1, 2)).trim();
-  UI.bibleChapter = String(matchArray.slice(2, 3)).trim();
-  
-  var verseSegment = String(matchArray.slice(3, 4)).trim();
-  if (verseSegment && verseSegment !== 'undefined' && verseSegment !== '') {
-    UI.bibleVerse = verseSegment.split(/[-–]/).slice(0, 1).toString().trim();
-  } else {
-    UI.bibleVerse = 'All';
-  }
-  
-  go('bible');
-}
 
 
 
