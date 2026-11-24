@@ -5489,8 +5489,7 @@ function openQuickGuideModal() {
     ['🙏 Prayer List, Wall & Testimonials', 'Track private requests in Prayer List or tap Pray Through My List for a focused prayer session. Visit Prayer Wall to pray for our group or send a request to our team, and mark answered prayers to build your Testimonials keepsake.'],
     ['✍️ Journal, Gratitude & Reflection', 'Write using ACTS, SOAP, Guided Prompts, or Free Write (with built-in scripture lookup). Log daily blessings in the 31-Day Gratitude Matrix and export your Monthly Reflection keepsake.'],
     ['📅 Calendar, Streaks & Faith Game', 'Tap any date on the Calendar to add study notes or appointments. Take a refreshing break in Faith Game with Trivia, Verse Scramble, Word Search, and Verse Match.'],
-    ['🕯️ Warm Evening Mode & Privacy', 'Switch between Daylight and Warm Evening Mode anytime in Settings or the Bible Reader. Your personal journal is saved privately on your own device, and you can download a backup anytime in Settings.
-']
+    ['🕯️ Warm Evening Mode & Privacy', 'Switch between Daylight and Warm Evening Mode anytime in Settings or the Bible Reader. Your personal journal is saved privately on your own device, and you can download a backup anytime in Settings.']
   ];
 
   var body = '<div style="max-height:62vh; overflow-y:auto; padding-right:4px;">';
@@ -5541,7 +5540,6 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
-
 
 
 
