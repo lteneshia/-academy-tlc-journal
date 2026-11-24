@@ -343,3 +343,15 @@ body.evening textarea.lined { background: #FDF7ED repeating-linear-gradient(tran
 .topm .nm { font: 400 30px/1 var(--script); }
 
 
+
+/* Subtle Gold Watercolor Splashes & Dainty Flecks */
+body {
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(212, 168, 83, 0.11) 0%, transparent 32%),
+    radial-gradient(circle at 88% 35%, rgba(212, 168, 83, 0.09) 0%, transparent 28%),
+    radial-gradient(circle at 22% 78%, rgba(212, 168, 83, 0.10) 0%, transparent 34%),
+    radial-gradient(circle at 82% 85%, rgba(15, 118, 110, 0.05) 0%, transparent 30%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' width='180' height='180' viewBox='0 0 180 180'%3E%3Ccircle cx='24' cy='32' r='1.6' fill='%23D4A853' fill-opacity='0.24'/%3E%3Ccircle cx='142' cy='54' r='1.2' fill='%23D4A853' fill-opacity='0.20'/%3E%3Ccircle cx='88' cy='118' r='1.8' fill='%23D4A853' fill-opacity='0.22'/%3E%3Ccircle cx='156' cy='148' r='1.4' fill='%23D4A853' fill-opacity='0.18'/%3E%3Ccircle cx='46' cy='158' r='1.1' fill='%23D4A853' fill-opacity='0.20'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+}
+
