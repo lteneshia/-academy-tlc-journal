@@ -4228,9 +4228,13 @@ var VM_STATE = { current: null, options: [], picked: null };
 function getVerseMatchPool() {
   ensureDynamicBiblePool_();
   var pool = DYNAMIC_VERSE_POOL.slice();
-  SYSTEM_VERSES.forEach(function(sv) { pool.push({ ref: sv, text: sv, topic: sv || 'Memory Verse' }); });
+  SYSTEM_VERSES.forEach(function(sv) {
+    var c = sv.slice();
+    pool.push({ ref: c.shift(), text: c.shift(), topic: c.shift() || 'Memory Verse' });
+  });
   return pool;
 }
+
 
 
 function initVerseMatch() {
@@ -5245,7 +5249,6 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
-
 
 
 
