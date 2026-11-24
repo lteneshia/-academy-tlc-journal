@@ -3458,6 +3458,8 @@ function vBible() {
   h += '<div style="display:flex; gap:8px; margin-bottom:10px; width:100%; flex-wrap:wrap; align-items:center;">';
   h += '  <button type="button" class="btn sm" style="' + evStyle + '" onclick="toggleEveningTheme()">' + (isEv ? '🕯️ Evening' : '☀️ Day') + '</button>';
   h += '  <button type="button" class="btn sm" style="border-color:var(--gold);background:var(--gold2);color:var(--ink);" onclick="openBibleHighlightsModal()">✨ Highlights</button>';
+  h += '  <button type="button" class="btn sm" style="border-color:var(--rose);background:var(--card);color:var(--rose-d);" onclick="openBibleSearchModal()">🔍 Search</button>';
+
   h += '  <div style="display:flex; gap:4px; margin-left:auto;">';
   h += '    <button type="button" class="btn sm" style="padding:6px 10px;" aria-label="Decrease text size" onclick="stepBibleFont(-2)">A-</button>';
   h += '    <button type="button" class="btn sm" style="padding:6px 10px;" aria-label="Increase text size" onclick="stepBibleFont(2)">A+</button>';
@@ -3801,6 +3803,108 @@ function removeHighlightFromModal(key) {
   openBibleHighlightsModal();
   applySavedHighlights();
 }
+
+
+function openBibleSearchModal() {
+  var old = document.getElementById('tlcBibleSearchModal');
+  if (old) old.remove();
+
+  var ver = UI.bibleVersion || 'KJV';
+  var ov = document.createElement('div');
+  ov.id = 'tlcBibleSearchModal';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(15,74,83,0.55);display:flex;align-items:center;justify-content:center;padding:16px;';
+  ov.onclick = function(e) { if (e.target === ov) ov.remove(); };
+
+  ov.innerHTML = '<div class="card" style="width:100%;max-width:520px;max-height:84vh;display:flex;flex-direction:column;padding:18px 20px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+    '  <h3 style="margin:0;">🔍 Search ' + esc(ver) + ' Bible</h3>' +
+    '  <button type="button" class="iconbtn" onclick="document.getElementById(\'tlcBibleSearchModal\').remove()">' + ic('close') + '</button>' +
+    '</div>' +
+    '<form onsubmit="event.preventDefault();runBibleKeywordSearch();" style="display:flex;gap:8px;margin-bottom:12px;">' +
+    '  <input type="text" id="bible_kw_input" placeholder="Type a word or phrase (e.g. cornerstone)..." style="flex:1;min-width:0;" required>' +
+    '  <button type="submit" class="btn pri">Search</button>' +
+    '</form>' +
+    '<div id="bible_kw_results" style="overflow-y:auto;padding-right:2px;">' +
+    '  <p class="mu sm" style="text-align:center;padding:18px 8px;">Search across all 66 books in ' + esc(ver) + '. Tap any matching verse to jump straight to that passage.</p>' +
+    '</div>' +
+    '</div>';
+
+  document.body.appendChild(ov);
+  setTimeout(function() {
+    var inp = document.getElementById('bible_kw_input');
+    if (inp) inp.focus();
+  }, 50);
+}
+
+async function runBibleKeywordSearch() {
+  var inp = document.getElementById('bible_kw_input');
+  var box = document.getElementById('bible_kw_results');
+  if (!inp || !box) return;
+
+  var rawQ = String(inp.value || '').trim();
+  if (rawQ.length < 2) {
+    box.innerHTML = '<p class="mu sm" style="text-align:center;padding:14px;">Please enter at least 2 letters to search.</p>';
+    return;
+  }
+
+  var ver = UI.bibleVersion || 'KJV';
+  box.innerHTML = '<p class="mu sm" style="text-align:center;padding:20px;">' + ic('today', 'spin') + ' Searching ' + esc(ver) + '...</p>';
+
+  try {
+    var bible = await loadLocalBible(ver);
+    var qLower = rawQ.toLowerCase();
+    var hits = [];
+    var totalHits = 0;
+
+    Object.keys(bible).forEach(function(bk) {
+      var chaps = bible[bk] || {};
+      Object.keys(chaps).forEach(function(ch) {
+        var verses = chaps[ch] || {};
+        Object.keys(verses).forEach(function(vs) {
+          var txt = String(verses[vs] || '');
+          if (txt.toLowerCase().indexOf(qLower) !== -1) {
+            totalHits++;
+            if (hits.length < 60) {
+              hits.push({ bk: bk, ch: ch, vs: vs, txt: txt });
+            }
+          }
+        });
+      });
+    });
+
+    if (!hits.length) {
+      box.innerHTML = '<p class="mu sm" style="text-align:center;padding:20px;">No verses found matching "<b>' + esc(rawQ) + '</b>" in ' + esc(ver) + '.</p>';
+      return;
+    }
+
+    var safeRegex = new RegExp('(' + rawQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    var header = '<div class="ey" style="margin-bottom:8px;">Showing ' + hits.length + (totalHits > hits.length ? ' of ' + totalHits : '') + ' matches for "' + esc(rawQ) + '"</div>';
+
+    box.innerHTML = header + '<div class="stack" style="gap:8px;">' + hits.map(function(m) {
+      var highlighted = esc(m.txt).replace(safeRegex, '<mark style="background:var(--gold2);color:var(--ink);padding:0 2px;border-radius:3px;">$1</mark>');
+      return '<div class="card" style="padding:10px 12px;border-left:3px solid var(--rose);">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;">' +
+        '  <b style="color:var(--rose-d);font-size:13.5px;">' + esc(m.bk + ' ' + m.ch + ':' + m.vs) + '</b>' +
+        '  <button type="button" class="btn sm pri" onclick="jumpFromSearch(\'' + esc(ver) + '\',\'' + esc(m.bk) + '\',\'' + esc(m.ch) + '\',\'' + esc(m.vs) + '\')">Open</button>' +
+        '</div>' +
+        '<div style="font-family:var(--serif);font-size:15px;line-height:1.45;color:var(--ink);">' + highlighted + '</div>' +
+        '</div>';
+    }).join('') + '</div>';
+  } catch (err) {
+    box.innerHTML = '<p class="mu sm" style="text-align:center;padding:16px;">Could not search Bible text: ' + esc(err.message || err) + '</p>';
+  }
+}
+
+function jumpFromSearch(ver, bk, ch, vs) {
+  var m = document.getElementById('tlcBibleSearchModal');
+  if (m) m.remove();
+  UI.bibleVersion = ver;
+  UI.bibleBook = bk;
+  UI.bibleChapter = ch;
+  UI.bibleVerse = vs;
+  render();
+}
+
 
 
 
