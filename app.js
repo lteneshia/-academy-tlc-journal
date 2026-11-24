@@ -3340,18 +3340,35 @@ function toggleAdminPlanCheck(key) {
  */
 function routeToBiblePassage(passageRef) {
   if (!passageRef || passageRef === 'None Assigned' || passageRef === 'Rest Day') return;
-  
-  // Fixes the spreadsheet formatting glitch by scrubbing away hidden spaces or column line breaks
-  var cleanRef = String(passageRef).trim().replace(/\s+/g, ' ');
-  
-  var match = cleanRef.match(/^([\d\s]*[A-Za-z\s]+)\s+(\d+)(?::([\d–\-]+))?/);
-  if (!match) {
-    UI.bibleBook = cleanRef.replace(/\d+/g, '').trim();
-    UI.bibleChapter = '1';
-    UI.bibleVerse = 'All';
-    go('bible');
-    return;
+
+  // Strip optional labels in parentheses like "(Perfection)" or "(Shield)" and normalize spaces
+  var cleanRef = String(passageRef)
+    .replace(/\([^)]*\)/g, '')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  // Extract book name, starting chapter, and optional starting verse
+  var match = cleanRef.match(/^((?:[1-3]\s*)?[A-Za-z][A-Za-z\s]*?)\s+(\d+)(?::(\d+))?/);
+  var rawBook = match ? match.slice(1, 2).shift().trim() : cleanRef.replace(/[\d:\-–]+/g, '').trim();
+  var chapNum = match ? match.slice(2, 3).shift() : '1';
+  var verseNum = (match && match.slice(3, 4).shift()) ? match.slice(3, 4).shift() : 'All';
+
+  // Normalize "Psalm" -> "Psalms" and match exact book name in BOOKS
+  if (/^psalm$/i.test(rawBook)) rawBook = 'Psalms';
+  var matchedBook = rawBook;
+  if (typeof BOOKS !== 'undefined' && BOOKS.length) {
+    BOOKS.forEach(function(bk) {
+      var bName = String(bk.slice(0, 1));
+      if (bName.toLowerCase() === rawBook.toLowerCase()) matchedBook = bName;
+    });
   }
+
+  UI.bibleBook = matchedBook || 'Genesis';
+  UI.bibleChapter = String(chapNum || '1');
+  UI.bibleVerse = String(verseNum || 'All');
+  go('bible');
+}
+
   
   var matchArray = [].slice.call(match);
   
