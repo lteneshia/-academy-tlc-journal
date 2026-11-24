@@ -4011,7 +4011,7 @@ function vGame() {
       h += '    <button class="btn sm" onclick="pickScramble(' + pIdx + ')">' + esc(item.w) + '</button>';
     });
     h += '  </div>';
-      if (solved) {
+         if (solved) {
       h += '  <div style="padding:12px 14px; border-radius:12px; background:var(--sage2); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">';
       h += '    <span><b>Amen!</b> You unscrambled <i>' + esc(sc.ref) + '</i>!</span>';
       h += '    <button class="btn sm pri" onclick="GM.streak++;saveDailyGameStreak();GM.activeScramble=null;GM.idx++;initScramble();render()">Next Verse ' + ic('next') + '</button>';
@@ -4021,8 +4021,10 @@ function vGame() {
       h += (GM.built.length ? '<button class="btn sm ghost" onclick="initScramble();render()">Reset Words</button>' : '<span></span>');
       h += '    <button class="btn sm ghost" onclick="GM.activeScramble=null;GM.idx++;initScramble();render()">Skip Verse ' + ic('next') + '</button>';
       h += '  </div>';
-
+    }
+    h += '</div>';
   } else if (GM.mode === 'versematch') {
+
     h += renderVerseMatchCard();
       } else if (GM.mode === 'whoami') {
     h += renderWhoAmICard();
