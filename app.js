@@ -1883,7 +1883,8 @@ function vJournal() {
   if (UI.jfilter) list = list.filter(function (e) { return e.type === UI.jfilter; });
   if (UI.q2) { var q = UI.q2.toLowerCase(); list = list.filter(function (e) { return (entryTitle(e) + ' ' + entryText(e) + ' ' + (e.ref || '')).toLowerCase().indexOf(q) >= 0; }); }
   var h = ph('Journal', 'My Daily', plural(entries().length, 'entry').replace('entrys', 'entries') + ' · write with ACTS, SOAP or a free page', '<button class="btn pri" onclick="newEntry()">' + ic('plus') + 'New entry</button>');
-  h += '<div class="seg">' + [['', 'All'], ['acts', 'ACTS'], ['soap', 'SOAP'], ['free', 'Free write']].map(function (t) { return '<button class="' + (UI.jfilter === t[0] ? 'on' : '') + '" onclick="UI.jfilter=\'' + t[0] + '\';render()">' + t[1] + '</button>'; }).join('') + '</div>';
+  h += '<div class="seg">' + [['', 'All'], ['acts', 'ACTS'], ['soap', 'SOAP'], ['guided', 'Guided Prompt'], ['free', 'Free write']].map(function (t) { return '<button class="' + (UI.jfilter === t[0] ? 'on' : '') + '" onclick="UI.jfilter=\'' + t[0] + '\';render()">' + t[1] + '</button>'; }).join('') + '</div>';
+
   if (entries().length > 5) h += '<div class="search">' + ic('search') + '<input type="search" placeholder="Search your journal" value="' + esc(UI.q2 || '') + '" oninput="UI.q2=this.value;clearTimeout(window._qs);window._qs=setTimeout(function(){render();var s=document.querySelector(\'.search input\');s.focus();s.setSelectionRange(s.value.length,s.value.length)},250)"></div>';
   if (!entries().length) return h + empty('Your first page is waiting', 'Try the ACTS method for prayer, or SOAP when you read your Bible. Each one guides you with gentle prompts.', '<button class="btn pri" onclick="newEntry()">' + ic('edit') + 'Write my first entry</button>');
   var mo = '';
