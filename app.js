@@ -2758,9 +2758,13 @@ function vSettings() {
     '<div class="f"><span>When I tap New entry</span><select onchange="setCfg(\'method\',this.value);toast(\'Saved.\')"><option value="">Ask me each time</option>' + Object.keys(METHODS).map(function (k) { return '<option value="' + k + '"' + (c.method === k ? ' selected' : '') + '>Start with ' + METHODS[k].name + '</option>'; }).join('') + '</select></div>' +
     '<div class="f"><span>Screen Theme</span><button type="button" class="btn sm" style="width:100%; justify-content:space-between; border-color:var(--gold); background:' + (c.eveningMode === '1' ? 'var(--gold2)' : 'var(--card)') + ';" onclick="toggleEveningTheme()"><span>' + (c.eveningMode === '1' ? '🕯️ Warm Evening Mode' : '☀️ Daylight Cream Mode') + '</span><span class="tag gold">Switch</span></button></div></div>';
 
-  h += '<div class="card"><h3>Share app &amp; daily reminder</h3><p class="sm">Open this link on your phone, then choose <b>Add to Home Screen</b> for an app experience.</p><div class="row"><input type="text" readonly value="' + esc(shareUrl) + '"><button class="btn sm" onclick="copyText(URL0 || window.location.href, \'Link copied.\')">' + ic('copy') + 'Copy</button></div>' +
+    h += '<div class="card"><h3>Share app &amp; daily reminder</h3><p class="sm">Invite a friend to study together, or choose <b>Add to Home Screen</b> on your phone for an app experience.</p><div class="row" style="flex-wrap:wrap;"><input type="text" readonly value="' + esc(shareUrl) + '"><button type="button" class="btn sm" onclick="copyText(URL0 || window.location.href, \'Link copied.\')">' + ic('copy') + 'Copy</button><button type="button" class="btn sm pri" onclick="shareAcademyApp()">💌 Invite a Friend</button></div>' +
     '<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line);"><div class="f" style="margin-bottom:8px;overflow:hidden;"><span>Preferred Daily Quiet-Time</span><input type="time" style="-webkit-appearance:none;appearance:none;width:100%;max-width:100%;min-width:0;box-sizing:border-box;display:flex;justify-content:center;align-items:center;text-align:center;margin:0 auto;" value="' + esc(c.reminderTime || '08:00') + '" onchange="setCfg(\'reminderTime\',this.value);toast(\'Quiet time updated.\')"></div><button class="btn sm pri" onclick="openDailyCalendarAlert()">🔔 Set Daily Phone Calendar Alert</button><div class="mu sm" style="margin-top:6px;">Adds a daily recurring reminder to your phone calendar at your chosen time with a direct link to open your journal.</div>' +
     '<div style="margin-top:10px;"><button class="link" style="font-size:13.5px; font-weight:600;" onclick="openQuickGuideModal()">📖 Open New Member Quick Guide</button></div></div></div>';
+
+  h += '<div class="card"><h3>Your private data</h3><p class="sm mu">Your personal journal entries, notes, and reading progress are saved privately on your own device. Download a backup anytime or print your study booklet as a PDF.</p><div class="row" style="flex-wrap:wrap">' +
+    '<button type="button" class="btn sm" onclick="backup()">Download a backup</button><label class="btn sm">Restore a backup<input type="file" accept=".json,application/json" hidden onchange="restore(this.files)"></label><button type="button" class="btn sm" style="border-color:var(--gold);background:var(--gold2);color:var(--ink);" onclick="exportStudyBookletPDF()">🖨️ Print / Save PDF Booklet</button></div></div>';
+
 
   h += '<div class="card"><h3>Your private data</h3><p class="sm mu">Your personal journal entries, notes, and reading progress are saved privately on your own device. Download a backup anytime to keep a copy or move to a new phone.</p><div class="row" style="flex-wrap:wrap">' +
     '<button class="btn sm" onclick="backup()">Download a backup</button><label class="btn sm">Restore a backup<input type="file" accept=".json,application/json" hidden onchange="restore(this.files)"></label></div></div>';
@@ -2770,6 +2774,61 @@ function vSettings() {
 
   return h;
 }
+
+
+function shareAcademyApp() {
+  var appUrl = 'https://github.io';
+  var msg = 'Join me in daily Bible study, prayer, and journaling on Academy T.L.C. (The Lord\'s Children) — free with KJV & BSB audio Scripture: ' + appUrl;
+  if (navigator.share) {
+    navigator.share({ title: 'Academy T.L.C. Bible Study Journal', text: msg, url: appUrl }).catch(function() {});
+  } else {
+    copyText(msg, 'Invitation message & link copied to share!');
+  }
+}
+
+function exportStudyBookletPDF() {
+  var entries = Object.keys(S.journal || {}).map(function(k) { return S.journal[k]; }).filter(Boolean);
+  var prayers = Object.keys(S.prayers || {}).map(function(k) { return S.prayers[k]; }).filter(Boolean);
+  var grats = Object.keys(S.gratitude || {}).map(function(k) { return S.gratitude[k]; }).filter(Boolean);
+  var uName = esc(cfg().name || 'Beloved');
+
+  var win = window.open('', '_blank');
+  if (!win) { toast('Please allow pop-ups to print or save your PDF booklet.'); return; }
+
+  var doc = '<!doctype html><html><head><meta charset="utf-8"><title>Academy T.L.C. Study Booklet</title>' +
+    '<style>body{font-family:Georgia,serif;color:#1B2A32;max-width:720px;margin:32px auto;padding:0 20px;line-height:1.6;}' +
+    'h1{color:#0F4A53;border-bottom:2px solid #D4AF37;padding-bottom:8px;margin-bottom:4px;}' +
+    'h2{color:#1B6B78;margin-top:28px;border-bottom:1px solid #E2DFD2;padding-bottom:4px;}' +
+    '.item{margin-bottom:16px;padding:12px 14px;border-left:3px solid #D4AF37;background:#FDFBF7;}' +
+    '.meta{font-size:12px;color:#5A727E;font-family:sans-serif;margin-bottom:4px;}' +
+    '@media print{.no-print{display:none;}}</style></head><body>' +
+    '<div class="no-print" style="text-align:right;margin-bottom:16px;"><button onclick="window.print()" style="padding:10px 18px;background:#1B6B78;color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">Save as PDF / Print</button></div>' +
+    '<h1>Academy T.L.C. — Personal Study Booklet</h1>' +
+    '<div class="meta">Prepared for ' + uName + ' · Where Jesus is the Cornerstone</div>';
+
+  doc += '<h2>Journal Reflections (' + entries.length + ')</h2>';
+  doc += entries.length ? entries.map(function(e) {
+    return '<div class="item"><div class="meta">' + esc(e.date || '') + (e.ref ? ' · ' + esc(e.ref) : '') + '</div>' +
+      '<b>' + esc(e.title || e.method || 'Reflection') + '</b><p style="margin:6px 0 0;white-space:pre-wrap;">' + esc(e.body || e.s || '') + '</p></div>';
+  }).join('') : '<p>No journal reflections recorded yet.</p>';
+
+  doc += '<h2>Prayers &amp; Answered Praises (' + prayers.length + ')</h2>';
+  doc += prayers.length ? prayers.map(function(p) {
+    return '<div class="item"><div class="meta">' + esc(p.date || '') + (p.answered ? ' · ANSWERED PRAISE' : '') + '</div>' +
+      '<b>' + esc(p.title || '') + '</b><p style="margin:6px 0 0;white-space:pre-wrap;">' + esc(p.notes || p.details || '') + '</p></div>';
+  }).join('') : '<p>No personal prayers recorded yet.</p>';
+
+  doc += '<h2>Gratitude Vault (' + grats.length + ')</h2>';
+  doc += grats.length ? grats.map(function(g) {
+    return '<div class="item"><div class="meta">' + esc(g.date || '') + '</div><p style="margin:0;white-space:pre-wrap;">' + esc(g.text || g.body || '') + '</p></div>';
+  }).join('') : '<p>No gratitude notes recorded yet.</p>';
+
+  doc += '</body></html>';
+  win.document.open();
+  win.document.write(doc);
+  win.document.close();
+}
+
 
 
 
@@ -5739,7 +5798,6 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
-
 
 
 
