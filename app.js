@@ -2695,24 +2695,24 @@ function downloadMonthlyKeepsake() {
 /* ---------- SETTINGS ---------- */
 function vSettings() {
   var c = cfg();
+  var shareUrl = URL0 || window.location.href;
   var h = ph('Settings', '', '');
-  h += '<div class="grid g2"><div class="card"><h3>About you</h3><div class="f" style="margin-top:10px"><span>Your first name (for your daily greeting)</span><input type="text" id="s_n" value="' + esc(c.name) + '" onchange="setCfg(\'name\',this.value.trim());toast(\'Saved.\')"></div>' +
+  h += '<div class="grid g2"><div class="card"><h3>About you</h3><div class="f" style="margin-top:10px"><span>Your first name (for your daily greeting)</span><input type="text" id="s_n" value="' + esc(c.name) + '" onchange="localStorage.setItem(\'tlc_user_name_v1\',this.value.trim());setCfg(\'name\',this.value.trim());toast(\'Saved.\')"></div>' +
     '<div class="f"><span>When I tap New entry</span><select onchange="setCfg(\'method\',this.value);toast(\'Saved.\')"><option value="">Ask me each time</option>' + Object.keys(METHODS).map(function (k) { return '<option value="' + k + '"' + (c.method === k ? ' selected' : '') + '>Start with ' + METHODS[k].name + '</option>'; }).join('') + '</select></div>' +
     '<div class="f"><span>Screen Theme</span><button type="button" class="btn sm" style="width:100%; justify-content:space-between; border-color:var(--gold); background:' + (c.eveningMode === '1' ? 'var(--gold2)' : 'var(--card)') + ';" onclick="toggleEveningTheme()"><span>' + (c.eveningMode === '1' ? '🕯️ Warm Evening Mode' : '☀️ Daylight Cream Mode') + '</span><span class="tag gold">Switch</span></button></div></div>';
 
-  h += '<div class="card"><h3>Your phone link &amp; daily reminder</h3>' + (URL0 ? '<p class="sm">Open this private link on your phone (signed in to the same Google account), then choose <b>Add to Home Screen</b>.</p><div class="row"><input type="text" readonly value="' + esc(URL0) + '"><button class="btn sm" onclick="copyText(URL0,\'Link copied.\')">' + ic('copy') + 'Copy</button></div>' :
-    '<p class="sm mu">' + (IS_GAS ? 'Make your private phone link with the steps in your Setup Guide (Deploy > New deployment > Web app). It shows up here when it\'s ready.' : 'This is a preview. Your own copy saves everything in your Google Sheet.') + '</p>') +
-    '<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line);"><button class="btn sm pri" onclick="openDailyCalendarAlert()">🔔 Set Daily Phone Calendar Alert</button><div class="mu sm" style="margin-top:6px;">Adds a daily recurring reminder to your phone calendar with a direct link to open your journal. <button class="link" style="font-size:12.5px;" onclick="setCfg(\'calPromptNever\',\'\');setCfg(\'calPromptSnooze\',\'\');checkDailyCalBanner();">Preview reminder prompt</button></div>' +
+  h += '<div class="card"><h3>Share app &amp; daily reminder</h3><p class="sm">Open this link on your phone, then choose <b>Add to Home Screen</b> for an app experience.</p><div class="row"><input type="text" readonly value="' + esc(shareUrl) + '"><button class="btn sm" onclick="copyText(\'' + esc(shareUrl) + '\',\'Link copied.\')">' + ic('copy') + 'Copy</button></div>' +
+    '<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line);"><div class="f" style="margin-bottom:8px;"><span>Preferred Daily Quiet-Time</span><input type="time" value="' + esc(c.reminderTime || '08:00') + '" onchange="setCfg(\'reminderTime\',this.value);toast(\'Quiet time updated.\')"></div><button class="btn sm pri" onclick="openDailyCalendarAlert()">🔔 Set Daily Phone Calendar Alert</button><div class="mu sm" style="margin-top:6px;">Adds a daily recurring reminder to your phone calendar at your chosen time with a direct link to open your journal.</div>' +
     '<div style="margin-top:10px;"><button class="link" style="font-size:13.5px; font-weight:600;" onclick="openQuickGuideModal()">📖 Open New Member Quick Guide</button></div></div></div>';
 
-  h += '<div class="card"><h3>Your data</h3><p class="sm mu">Everything is saved in your own Google Sheet. Nothing is sent to anyone else.</p><div class="row" style="flex-wrap:wrap">' +
-    '<button class="btn sm" onclick="updateTabs()">Update spreadsheet tabs</button><button class="btn sm" onclick="backup()">Download a backup</button><label class="btn sm">Restore a backup<input type="file" accept=".json,application/json" hidden onchange="restore(this.files[0])"></label></div></div>';
+  h += '<div class="card"><h3>Your private data</h3><p class="sm mu">Your personal journal entries, notes, and reading progress are saved privately on your own device. Download a backup anytime to keep a copy or move to a new phone.</p><div class="row" style="flex-wrap:wrap">' +
+    '<button class="btn sm" onclick="backup()">Download a backup</button><label class="btn sm">Restore a backup<input type="file" accept=".json,application/json" hidden onchange="restore(this.files[0])"></label></div></div>';
   h += '<div class="card"><h3>Example journal</h3><p class="sm mu">Fill the journal with example prayers and entries to see how everything works. Clear it when you are ready to start.</p><div class="row" style="flex-wrap:wrap"><button class="btn sm" onclick="confirmBox(\'This adds example prayers, entries and verses to your journal.\',\'Add examples\',function(){loadDemo();go(\'today\')})">See an example journal</button>' +
     '<button class="btn sm ghost" onclick="confirmBox(\'This permanently erases every prayer, entry, verse and reading plan in this journal. Download a backup first if you want to keep anything.\',\'Erase everything\',eraseAll)" style="color:#A2453F">Erase everything</button></div></div></div>';
   h += divider() + '<p class="mu sm" style="text-align:center">Prayer Journal by T.L.C · Academy of The Lord\'s Children · Daily verses are from the King James Version.</p>';
-
   return h;
 }
+
 
 function tables() {
   var T = {};
@@ -3673,12 +3673,19 @@ function handleCalReminderChoice(choice) {
  */
 function openDailyCalendarAlert() {
   var appLink = URL0 || window.location.href;
+  var tVal = (cfg().reminderTime || '08:00').split(':');
+  var hh = ('0' + (tVal || '08')).slice(-2);
+  var min = ('0' + (tVal || '00')).slice(-2);
+  var endMinNum = parseInt(min, 10) + 15;
+  var endHh = endMinNum >= 60 ? ('0' + ((parseInt(hh, 10) + 1) % 24)).slice(-2) : hh;
+  var endMin = ('0' + (endMinNum % 60)).slice(-2);
+
   var now = new Date();
   var yyyy = now.getFullYear();
   var mm = ('0' + (now.getMonth() + 1)).slice(-2);
   var dd = ('0' + now.getDate()).slice(-2);
-  var startStamp = yyyy + mm + dd + 'T080000';
-  var endStamp = yyyy + mm + dd + 'T081500';
+  var startStamp = yyyy + mm + dd + 'T' + hh + min + '00';
+  var endStamp = yyyy + mm + dd + 'T' + endHh + endMin + '00';
 
   var ics = [
     'BEGIN:VCALENDAR',
@@ -3709,8 +3716,9 @@ function openDailyCalendarAlert() {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  toast('Calendar reminder ready! Tap to add it to your calendar.');
+  toast('Calendar reminder set for ' + (cfg().reminderTime || '08:00') + '!');
 }
+
 
 
 
@@ -5481,7 +5489,8 @@ function openQuickGuideModal() {
     ['🙏 Prayer List, Wall & Testimonials', 'Track private requests in Prayer List or tap Pray Through My List for a focused prayer session. Visit Prayer Wall to pray for our group or send a request to our team, and mark answered prayers to build your Testimonials keepsake.'],
     ['✍️ Journal, Gratitude & Reflection', 'Write using ACTS, SOAP, Guided Prompts, or Free Write (with built-in scripture lookup). Log daily blessings in the 31-Day Gratitude Matrix and export your Monthly Reflection keepsake.'],
     ['📅 Calendar, Streaks & Faith Game', 'Tap any date on the Calendar to add study notes or appointments. Take a refreshing break in Faith Game with Trivia, Verse Scramble, Word Search, and Verse Match.'],
-    ['🕯️ Warm Evening Mode & Privacy', 'Switch between Daylight and Warm Evening Mode anytime in Settings or the Bible Reader. Your personal journal is saved privately in your own Google Drive.']
+    ['🕯️ Warm Evening Mode & Privacy', 'Switch between Daylight and Warm Evening Mode anytime in Settings or the Bible Reader. Your personal journal is saved privately on your own device, and you can download a backup anytime in Settings.
+']
   ];
 
   var body = '<div style="max-height:62vh; overflow-y:auto; padding-right:4px;">';
