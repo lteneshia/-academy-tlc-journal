@@ -1,4 +1,4 @@
-const CACHE_NAME = 'academy-tlc-v1';
+const CACHE_NAME = 'academy-tlc-v2';
 const ASSETS = [
   './',
   './index.html',
