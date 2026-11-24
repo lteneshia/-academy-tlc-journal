@@ -669,12 +669,44 @@ function hash(str) { var h = 0; for (var i = 0; i < str.length; i++) h = (h * 31
 function verseOfDay(d) { return VERSES[hash('tlc_v_' + (d || today())) % VERSES.length]; }
 function greeting() { var hr = new Date().getHours(); return hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening'; }
 
+var _promptOffset = 0, _prayerOffset = 0;
+
+function cyclePrompt_() { _promptOffset++; render(); }
+function cyclePrayer_() { _prayerOffset++; render(); }
+
+function getDynamicPrompts_(isGuided) {
+  var base = (isGuided ? GUIDED_PROMPTS : PROMPTS).slice();
+  var starters = isGuided
+    ? ['Read and meditate on ', 'Ask the Holy Spirit how to walk out ', 'Reflect on God\'s promise in ']
+    : ['Pray through the truth of ', 'Thank the Lord for His faithfulness in ', 'Write a reflection anchored in '];
+  VERSES.forEach(function(v, idx) {
+    var c = v.slice();
+    var ref = c.shift(), txt = c.shift();
+    base.push(starters[idx % starters.length] + ref + ': “' + txt + '”');
+  });
+  return base;
+}
+
 function promptOfDay(d, type) {
   var activeType = type || (window._draft ? window._draft.type : 'free');
   var isGuided = (activeType === 'guided');
-  var pool = isGuided ? GUIDED_PROMPTS : PROMPTS;
-  return pool[hash((isGuided ? 'tlc_g_' : 'tlc_p_') + (d || today())) % pool.length];
+  var pool = getDynamicPrompts_(isGuided);
+  return pool[(hash((isGuided ? 'tlc_g_' : 'tlc_p_') + (d || today())) + _promptOffset) % pool.length];
 }
+
+function prayerOfDay(d) {
+  var pool = DAILY_PRAYERS.slice();
+  VERSES.forEach(function(v) {
+    var c = v.slice();
+    var ref = c.shift(), txt = c.shift();
+    pool.push({
+      title: 'A Prayer Anchored in ' + ref,
+      details: 'Heavenly Father, Your Word declares, “' + txt + '” (' + ref + '). Seal this promise in our hearts today, strengthen our faith, and glorify Your name in our lives and families. In Jesus\' name, Amen.'
+    });
+  });
+  return pool[(hash('grouppotd' + (d || today())) + _prayerOffset) % pool.length];
+}
+
 
 function prayers() { return all('prayers'); }
 function active() { return prayers().filter(function(p) { return !p.answered; }); }
@@ -1215,14 +1247,15 @@ function vToday() {
     '<div class="week">' + wk + '</div><div class="mu sm" style="margin-top:10px">Longest ' + plural(st.best, 'day') + ' · ' + plural(st.total, 'day') + ' with Him</div></div>';
 
   // 3. Today's Journal Card
-  var e = entryToday();
+    var e = entryToday();
   h += '<div class="card"><div class="hd"><h3>Today\'s journal</h3><button class="link" onclick="go(\'journal\')">All entries</button></div>';
   if (e) {
     h += '<div class="tag sage">' + ic('check') + ' ' + esc((METHODS[e.type] || METHODS.free).name) + ' entry written</div><h3 style="margin:10px 0 4px">' + esc(entryTitle(e)) + '</h3><p class="mu sm" style="margin:0 0 12px">' + esc(entryText(e).slice(0, 140)) + '…</p><button class="btn sm" onclick="editEntry(\'' + e.id + '\')">' + ic('edit') + 'Keep writing</button>';
   } else {
-    h += '<div class="prompt"><small>Today\'s prompt</small>' + esc(promptOfDay()) + '</div><div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px;"><button class="btn sm pri" onclick="newEntry(\'acts\')">ACTS</button><button class="btn sm" onclick="newEntry(\'soap\')">SOAP</button><button class="btn sm pri" onclick="newEntry(\'guided\')">Guided Prompt</button><button class="btn sm" onclick="newEntry(\'free\')">Free write</button></div>';
+    h += '<div class="prompt"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;"><small style="margin:0;">Today\'s prompt</small><button type="button" class="btn sm ghost" style="padding:2px 8px;font-size:11.5px;color:var(--rose-d);font-weight:600;" onclick="cyclePrompt_()">↻ Another Prompt</button></div>' + esc(promptOfDay()) + '</div><div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px;"><button class="btn sm pri" onclick="newEntry(\'acts\')">ACTS</button><button class="btn sm" onclick="newEntry(\'soap\')">SOAP</button><button class="btn sm pri" onclick="newEntry(\'guided\')">Guided Prompt</button><button class="btn sm" onclick="newEntry(\'free\')">Free write</button></div>';
   }
   h += '</div>';
+
 
   // 4. Pray Today & Shared Prayer of the Day
   var due = active().filter(function(p) { return dueToday(p) && p.id !== 'dummy_potd_log'; });
@@ -1231,12 +1264,14 @@ function vToday() {
   h += '  <div class="hd"><h3>Pray today</h3><span class="mu sm">' + doneCount + ' of ' + due.length + ' list prayers</span><button class="link" onclick="go(\'prayers\')">My list</button></div>';
 
   var groupHash = hash('grouppotd' + t);
-  var groupPotd = DAILY_PRAYERS[groupHash % DAILY_PRAYERS.length];
+  var groupPotd = prayerOfDay(t);
+
   var groupPrayerKey = 'group_pray_' + t;
   var isGroupDone = cfg()[groupPrayerKey] === '1';
 
   h += '  <div class="prompt" style="background:var(--gold2); border-color:var(--gold); margin-bottom:14px; padding:14px; border-radius:12px;">';
-  h += '    <small style="color:var(--rose-d); font-weight:600; font-size:11px; letter-spacing:0.08em; display:block; margin-bottom:2px;">🙏 SHARED PRAYER OF THE DAY</small>';
+  h += '    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;"><small style="color:var(--rose-d); font-weight:600; font-size:11px; letter-spacing:0.08em;">🙏 SHARED PRAYER OF THE DAY</small><button type="button" class="btn sm ghost" style="padding:2px 8px;font-size:11.5px;color:var(--rose-d);font-weight:600;" onclick="cyclePrayer_()">↻ Another Prayer</button></div>';
+
   h += '    <div style="font-weight:600; font-size:18px; color:var(--ink); margin-bottom:4px;">' + esc(groupPotd.title) + '</div>';
   h += '    <p style="font-size:14.5px; margin:4px 0 10px; color:var(--mu); font-family:var(--serif); line-height:1.45; white-space:pre-wrap;">' + esc(groupPotd.details) + '</p>';
 
@@ -1917,7 +1952,8 @@ function editEntry(id, type, draft) {
     body += '<div class="f"><span>Passage</span><input type="text" id="e_ref" value="' + esc(e.ref) + '" placeholder="e.g. Psalm 23 or John 15:1–11"></div>';
   } else {
     var labelText = (e.type === 'guided') ? 'Today\'s Guided Reflection' : 'A prompt if you need one';
-    body += '<div class="prompt" style="margin-bottom:16px"><small>' + labelText + '</small>' + esc(promptOfDay(e.date, e.type)) + '</div>';
+    body += '<div class="prompt" style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;"><small style="margin:0;">' + labelText + '</small><button type="button" class="btn sm ghost" style="padding:2px 8px;font-size:11.5px;color:var(--rose-d);font-weight:600;" onclick="var d=readEntryForm();_promptOffset++;editEntry(\'' + (id || '') + '\',null,d)">↻ Another Prompt</button></div>' + esc(promptOfDay(e.date, e.type)) + '</div>';
+
   }
   
   body += m.fields.map(function (f) {
