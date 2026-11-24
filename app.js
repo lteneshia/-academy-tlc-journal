@@ -1252,7 +1252,8 @@ function vToday() {
   if (e) {
     h += '<div class="tag sage">' + ic('check') + ' ' + esc((METHODS[e.type] || METHODS.free).name) + ' entry written</div><h3 style="margin:10px 0 4px">' + esc(entryTitle(e)) + '</h3><p class="mu sm" style="margin:0 0 12px">' + esc(entryText(e).slice(0, 140)) + '…</p><button class="btn sm" onclick="editEntry(\'' + e.id + '\')">' + ic('edit') + 'Keep writing</button>';
   } else {
-    h += '<div class="prompt"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;"><small style="margin:0;">Today\'s prompt</small><button type="button" class="btn sm ghost" style="padding:2px 8px;font-size:11.5px;color:var(--rose-d);font-weight:600;" onclick="cyclePrompt_()">↻ Another Prompt</button></div>' + esc(promptOfDay()) + '</div><div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px;"><button class="btn sm pri" onclick="newEntry(\'acts\')">ACTS</button><button class="btn sm" onclick="newEntry(\'soap\')">SOAP</button><button class="btn sm pri" onclick="newEntry(\'guided\')">Guided Prompt</button><button class="btn sm" onclick="newEntry(\'free\')">Free write</button></div>';
+       h += '<div class="prompt" style="cursor:pointer;transition:transform 0.15s ease,box-shadow 0.15s ease;" title="Tap to write your reflection" onclick="newEntry(\'guided\')"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;"><small style="margin:0;">Today\'s prompt · <span style="color:var(--rose-d);font-weight:600;">Tap to write</span></small><button type="button" class="btn sm ghost" style="padding:2px 8px;font-size:11.5px;color:var(--rose-d);font-weight:600;" onclick="event.stopPropagation();cyclePrompt_()">↻ Another Prompt</button></div>' + esc(promptOfDay()) + '</div><div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px;"><button class="btn sm pri" onclick="newEntry(\'acts\')">ACTS</button><button class="btn sm" onclick="newEntry(\'soap\')">SOAP</button><button class="btn sm pri" onclick="newEntry(\'guided\')">Guided Prompt</button><button class="btn sm" onclick="newEntry(\'free\')">Free write</button></div>';
+
   }
   h += '</div>';
 
@@ -4650,8 +4651,27 @@ var CW_WORD_BANK = [
   ['JOHN', 'Beloved disciple who wrote the fourth Gospel'],
   ['LUKE', 'Physician who wrote the third Gospel and Acts'],
   ['MARK', 'Author of the shortest Gospel in the New Testament'],
-  ['JUDE', 'Short New Testament letter right before Revelation']
+  ['JUDE', 'Short New Testament letter right before Revelation'],
+  ['ABEL', 'Second son of Adam and Eve whose offering pleased God'],
+  ['SETH', 'Son born to Adam and Eve after Abel (Gen. 4:25)'],
+  ['LEVI', 'Priestly tribe of Israel set apart for temple service'],
+  ['ESAU', 'Twin brother of Jacob who sold his birthright (Gen. 25)'],
+  ['BOAZ', 'Kinsman-redeemer who married Ruth in Bethlehem'],
+  ['OBED', 'Son of Boaz and Ruth, grandfather of King David'],
+  ['JOEL', 'Prophet who foretold God pouring out His Spirit (Joel 2:28)'],
+  ['HOSEA', 'Prophet whose life illustrated God\'s steadfast covenant love'],
+  ['DOVE', 'Bird that returned to Noah\'s ark with an olive leaf'],
+  ['STAR', 'Bright sign in the sky that guided the wise men to Jesus'],
+  ['SALT', 'Jesus told His followers, "Ye are the _____ of the earth"'],
+  ['ROCK', 'Wise builder built his house upon this solid foundation'],
+  ['WINE', 'Water turned into this at the wedding in Cana (John 2)'],
+  ['GOLD', 'First precious gift brought to baby Jesus by the wise men'],
+  ['SOUL', 'Bless the LORD, O my _____ (Psalm 103:1)'],
+  ['REST', 'Come unto me... and I will give you _____ (Matt. 11:28)'],
+  ['WORD', 'In the beginning was the _____ (John 1:1)'],
+  ['LIFE', 'Jesus said, "I am the way, the truth, and the _____"']
 ];
+
 
 function generateDynamicCrossword_() {
   var pick = CW_WORD_BANK.slice().sort(function() { return Math.random() - 0.5; });
