@@ -521,7 +521,7 @@ function setPill(label) {
 
 function triggerSync() {
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(commitSync, 550);
+  syncTimer = setTimeout(commitSync, 0);
   setPill('Saving…');
 }
 
@@ -557,7 +557,7 @@ function put(table, record, silent) {
   if (!record.id) record.id = uid();
   S[table][record.id] = record;
   pendingOps[table + '|' + record.id] = { c: table, rec: record };
-  triggerSync();
+  commitSync();
   if (!silent) render();
   return record;
 }
@@ -565,9 +565,10 @@ function put(table, record, silent) {
 function del(table, id, silent) {
   delete S[table][id];
   pendingOps[table + '|' + id] = { c: table, del: id };
-  triggerSync();
+  commitSync();
   if (!silent) render();
 }
+
 
 function cfg() {
   var c = S.settings.main || { id: 'main' };
@@ -1150,8 +1151,8 @@ function vToday() {
     }
   }
 
+  h += '<div class="card hero">' + heroArt() + '<div class="tx"><div class="hi" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>' + greeting() + nm + '</span><button type="button" class="btn sm ghost" style="padding:2px 9px;font-size:11.5px;border:1px solid var(--line);" onclick="openChangeNameModal()">Edit Name</button></div><div class="dt">' + fmtD(t, true) + '</div>' +
 
-  h += '<div class="card hero">' + heroArt() + '<div class="tx"><div class="hi">' + greeting() + nm + '</div><div class="dt">' + fmtD(t, true) + '</div>' +
     '<div class="verse">“' + esc(v.slice(1, 2).pop()) + '”</div><div class="ref">' + esc(v.slice(0, 1).pop()) + ' · KJV</div>' +
     '<div class="row" style="margin-top:12px; flex-wrap:wrap;"><button class="btn sm" onclick="saveDaily()">' + ic('star') + 'Save verse</button><button class="btn sm" style="border-color:var(--gold); background:var(--gold2);" onclick="drawPromiseJar()">&#127994; Promise Jar</button><button class="btn sm ghost" onclick="var v=verseOfDay();openVerseCard(v.slice(0,1).shift(),v.slice(1,2).shift(),\'KJV\')">&#127807; Card</button><button class="btn sm ghost" onclick="copyText(VERSES_TXT())">' + ic('copy') + 'Copy</button></div></div></div>';
 
@@ -1653,14 +1654,15 @@ function saveAdminContentEditor() {
   var p2Val = ((document.getElementById('adm_p2_in') || {}).value || '').trim();
   var bulkRaw = (document.getElementById('adm_bulk_in') || {}).value || '';
 
-  var parsedRows = bulkRaw.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(Boolean).map(function(line) {
+    var parsedRows = bulkRaw.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(Boolean).map(function(line) {
     var parts = line.indexOf('\t') >= 0 ? line.split('\t') : line.split('|');
     return {
-      date: (parts || '').trim(),
-      p1: (parts || 'Rest Day').trim(),
-      p2: (parts || 'Rest Day').trim()
+      date: (parts[0] || '').trim(),
+      p1: (parts[1] || 'Rest Day').trim(),
+      p2: (parts[2] || 'Rest Day').trim()
     };
   }).filter(function(r) { return /^\d{4}-\d{2}-\d{2}$/.test(r.date); });
+
 
   var reqs = [
     sbFetch_('/rest/v1/rpc/admin_update_content', {
@@ -1704,7 +1706,8 @@ function tapSecretAdmin_() {
 
 
 
-function vPrayerWall() {
+
+ function vPrayerWall() {
   var isAdm = isPrayerAdminUnlocked_();
   var h = '<div onclick="if(event.target.tagName===\'H1\')tapSecretAdmin_()">' +
     ph('Prayer Wall', 'Community', 'Stand in agreement with our Academy T.L.C. family, or send a prayer request to our team.',
@@ -2758,6 +2761,24 @@ function saveFirstTimeRegistrationName() {
   setTimeout(checkDailyCalBanner, 400);
 }
 
+
+function openChangeNameModal() {
+  var cur = (cfg().name || '').trim();
+  openModal('Update Display Name',
+    '<div class="f"><span>Your First Name</span>' +
+    '<input type="text" id="edit_name_in" value="' + esc(cur) + '" placeholder="Enter your name..."></div>',
+    '<button type="button" class="btn pri" onclick="saveUpdatedDisplayName()">Save Name</button>'
+  );
+}
+
+function saveUpdatedDisplayName() {
+  var nextName = val('edit_name_in').trim() || 'Believer';
+  localStorage.setItem('tlc_user_name_v1', nextName);
+  setCfg('name', nextName);
+  closeModal();
+  toast('Name updated to ' + nextName + '!');
+  render();
+}
 
 
 
@@ -5190,6 +5211,10 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
+
+
+
+
 
 
 
