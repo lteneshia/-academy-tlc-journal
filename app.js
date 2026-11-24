@@ -3396,6 +3396,7 @@ function vBible() {
 
   h += '<div style="display:flex; gap:8px; margin-bottom:10px; width:100%; flex-wrap:wrap; align-items:center;">';
   h += '  <button type="button" class="btn sm" style="' + evStyle + '" onclick="toggleEveningTheme()">' + (isEv ? '🕯️ Evening' : '☀️ Day') + '</button>';
+  h += '  <button type="button" class="btn sm" style="border-color:var(--gold);background:var(--gold2);color:var(--ink);" onclick="openBibleHighlightsModal()">✨ Highlights</button>';
   h += '  <div style="display:flex; gap:4px; margin-left:auto;">';
   h += '    <button type="button" class="btn sm" style="padding:6px 10px;" aria-label="Decrease text size" onclick="stepBibleFont(-2)">A-</button>';
   h += '    <button type="button" class="btn sm" style="padding:6px 10px;" aria-label="Increase text size" onclick="stepBibleFont(2)">A+</button>';
@@ -3422,16 +3423,17 @@ function vBible() {
 
   h += '    <div class="f" style="margin-bottom: 0;"><span>Chapter</span><select id="b_chap" onchange="changeBibleChapter(this.value)">';
   for (var c = 1; c <= totalChapters; c++) {
-    h += '      <option value="' + c + '"' + (String(UI.bibleChapter) === String(c) ? ' selected' : '') + '>Ch. ' + c + '</option>';
+    h += '      <option value="' + c + '"' + (String(UI.bibleChapter) === String(c) ? ' selected' : '') + '>' + c + '</option>';
   }
   h += '    </select></div>';
 
   var totalVerses = getBibleVerseCount(UI.bibleBook, UI.bibleChapter);
   h += '    <div class="f" style="margin-bottom: 0;"><span>Verse</span><select id="b_verse" onchange="changeBibleVerse(this.value)">';
-  h += '      <option value="All"' + (UI.bibleVerse === 'All' ? ' selected' : '') + '>Show All</option>';
+  h += '      <option value="All"' + (UI.bibleVerse === 'All' ? ' selected' : '') + '>All</option>';
   for (var v = 1; v <= totalVerses; v++) {
-    h += '      <option value="' + v + '"' + (String(UI.bibleVerse) === String(v) ? ' selected' : '') + '>Vs. ' + v + '</option>';
+    h += '      <option value="' + v + '"' + (String(UI.bibleVerse) === String(v) ? ' selected' : '') + '>' + v + '</option>';
   }
+
   h += '    </select></div>';
   h += '  </div>';
   h += '</div>';
@@ -3658,6 +3660,88 @@ function toggleBibleHighlight() {
   put('settings', { id: 'bibleHighlights', data: saved }, true);
   closeBibleVerseBar();
 }
+
+
+function openBibleHighlightsModal() {
+  var saved = (S.settings.bibleHighlights && S.settings.bibleHighlights.data) || {};
+  var keys = Object.keys(saved).filter(function(k) { return !!saved[k]; });
+  var old = document.getElementById('tlcHighlightsModal');
+  if (old) old.remove();
+
+  var ov = document.createElement('div');
+  ov.id = 'tlcHighlightsModal';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(15,74,83,0.55);display:flex;align-items:center;justify-content:center;padding:16px;';
+  ov.onclick = function(e) { if (e.target === ov) ov.remove(); };
+
+  var bodyHtml = '';
+  if (!keys.length) {
+    bodyHtml = '<p class="mu" style="text-align:center;padding:24px 10px;">No highlighted verses yet. Tap any verse while reading Scripture to highlight it in gold!</p>';
+  } else {
+    bodyHtml = '<div id="hl_modal_list" class="stack" style="gap:10px;">' + keys.map(function(k, idx) {
+      var parts = k.split('|');
+      var ver = parts.slice(0, 1).shift() || 'KJV';
+      var bk = parts.slice(1, 2).shift() || 'Genesis';
+      var ch = parts.slice(2, 3).shift() || '1';
+      var vs = parts.slice(3, 4).shift() || '1';
+      return '<div class="card" style="padding:12px 14px;border-left:4px solid var(--gold);">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">' +
+        '  <b style="color:var(--rose-d);font-size:14px;">' + esc(bk + ' ' + ch + ':' + vs) + ' <span class="tag gold">' + esc(ver) + '</span></b>' +
+        '  <div style="display:flex;gap:6px;">' +
+        '    <button type="button" class="btn sm pri" onclick="jumpToHighlight(\'' + esc(ver) + '\',\'' + esc(bk) + '\',\'' + esc(ch) + '\',\'' + esc(vs) + '\')">Open</button>' +
+        '    <button type="button" class="btn sm ghost" style="color:var(--mu);" onclick="removeHighlightFromModal(\'' + esc(k) + '\')">Remove</button>' +
+        '  </div>' +
+        '</div>' +
+        '<div id="hl_txt_' + idx + '" class="mu sm" style="font-family:var(--serif);font-size:15px;line-height:1.5;color:var(--ink);">Loading verse...</div>' +
+        '</div>';
+    }).join('') + '</div>';
+  }
+
+  ov.innerHTML = '<div class="card" style="width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;padding:18px 20px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+    '  <h3 style="margin:0;">✨ Highlighted Scriptures (' + keys.length + ')</h3>' +
+    '  <button type="button" class="iconbtn" onclick="document.getElementById(\'tlcHighlightsModal\').remove()">' + ic('close') + '</button>' +
+    '</div>' +
+    '<div style="overflow-y:auto;padding-right:2px;">' + bodyHtml + '</div>' +
+    '</div>';
+  document.body.appendChild(ov);
+
+  keys.forEach(function(k, idx) {
+    var parts = k.split('|');
+    var ver = parts.slice(0, 1).shift() || 'KJV';
+    var bk = parts.slice(1, 2).shift() || 'Genesis';
+    var ch = parts.slice(2, 3).shift() || '1';
+    var vs = parts.slice(3, 4).shift() || '1';
+    gas('api_bible_lookup', { book: bk, chapter: ch, version: ver }).then(function(html) {
+      var box = document.getElementById('hl_txt_' + idx);
+      if (!box) return;
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html || '';
+      var p = tmp.querySelector('p[data-v="' + vs + '"]');
+      box.textContent = p ? p.textContent.replace(/^\d+\s*/, '') : (bk + ' ' + ch + ':' + vs);
+    });
+  });
+}
+
+function jumpToHighlight(ver, bk, ch, vs) {
+  var m = document.getElementById('tlcHighlightsModal');
+  if (m) m.remove();
+  UI.bibleVersion = ver;
+  UI.bibleBook = bk;
+  UI.bibleChapter = ch;
+  UI.bibleVerse = vs;
+  render();
+}
+
+function removeHighlightFromModal(key) {
+  var saved = (S.settings.bibleHighlights && S.settings.bibleHighlights.data) || {};
+  delete saved[key];
+  put('settings', { id: 'bibleHighlights', data: saved }, true);
+  toast('Highlight removed.');
+  openBibleHighlightsModal();
+  applySavedHighlights();
+}
+
+
 
 function saveTappedBibleVerse() {
   var tv = window._tappedVerse;
