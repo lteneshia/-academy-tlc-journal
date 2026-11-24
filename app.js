@@ -3467,10 +3467,22 @@ function stepBibleFont(delta) {
   var cur = parseInt(cfg().bibleFontSize, 10) || 18;
   var next = Math.max(14, Math.min(28, cur + delta));
   setCfg('bibleFontSize', String(next));
-  var el = document.getElementById('bible_text_body');
-  if (el) el.style.fontSize = next + 'px';
+  applyBibleFontSize(next);
   toast('Scripture text size: ' + next + 'px');
 }
+
+function applyBibleFontSize(sz) {
+  var size = parseInt(sz || cfg().bibleFontSize, 10) || 18;
+  var el = document.getElementById('bible_text_body');
+  if (!el) return;
+  el.style.fontSize = size + 'px';
+  el.querySelectorAll('p, div, span').forEach(function(node) {
+    if (!node.classList.contains('ey') && !node.classList.contains('mu')) {
+      node.style.fontSize = size + 'px';
+    }
+  });
+}
+
 
 function stepBibleChapter(dir) {
   stopBibleAudio();
@@ -3553,6 +3565,7 @@ function loadActiveBibleText() {
     if (loader) loader.style.display = 'none';
     body.innerHTML = window._bibleCache[cacheKey];
     applySavedHighlights();
+    applyBibleFontSize();
     if (UI.bibleVerse && UI.bibleVerse !== 'All') changeBibleVerse(UI.bibleVerse);
     return;
   }
@@ -3565,6 +3578,7 @@ function loadActiveBibleText() {
       if (loader) loader.style.display = 'none';
       body.innerHTML = finalHtml;
       applySavedHighlights();
+      applyBibleFontSize();
       if (UI.bibleVerse && UI.bibleVerse !== 'All') changeBibleVerse(UI.bibleVerse);
     })
     .catch(function(err) {
@@ -3572,6 +3586,7 @@ function loadActiveBibleText() {
       body.innerHTML = '<p class="mu">Error loading scripture: ' + esc(err.message || err) + '</p>';
     });
 }
+
 
 
 
@@ -5638,7 +5653,6 @@ function openOurStoryModal() {
     '<button type="button" class="btn pri" style="width:100%;" onclick="closeModal()">Amen · Close</button>'
   );
 }
-
 
 
 
