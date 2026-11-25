@@ -5884,7 +5884,8 @@ function openQuickGuideModal() {
 /* ---------- FOUNDING STORY MODAL: HOW ACADEMY T.L.C. BEGAN ---------- */
 function openOurStoryModal() {
   var html = '<div style="max-height:64vh; overflow-y:auto; padding-right:4px;">';
-  html += '  <div style="text-align:center; margin-bottom:14px;">' + emptyArt() + '</div>';
+  html += '  <div style="text-align:center; margin-bottom:16px;"><img src="./splash.png" alt="Academy T.L.C." style="width:170px; max-width:60%; border-radius:18px; border:2px solid var(--gold); box-shadow:0 8px 22px rgba(15,74,83,0.16);"></div>';
+
   html += '  <div style="background:var(--gold2); border-left:3px solid var(--gold); border-radius:12px; padding:12px 14px; margin-bottom:16px; font-family:var(--serif); font-style:italic; font-size:16.5px; line-height:1.45; color:var(--ink);">';
   html += '    “Jesus saith unto him, Feed my sheep.”<br><b style="font-style:normal; font-size:12.5px; color:var(--rose-d);">— John 21:17 (KJV)</b>';
   html += '  </div>';
