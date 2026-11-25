@@ -154,7 +154,8 @@ h3 { font: 600 19px/1.25 var(--serif); margin: 0; color: var(--ink); }
 .link { border: 0; background: none; color: var(--rose); font-weight: 600; padding: 0; font-size: 14px; }
 /* Hero, Streak & Buttons */
 .hero { overflow: hidden; background: var(--card); padding: 26px 26px 22px; min-height: 185px; }
-.hero .heroart { position: absolute; right: -6px; top: -6px; width: 58%; max-width: 410px; height: 100%; opacity: 0.9; pointer-events: none; }
+.hero .heroart { position: absolute; right: 6px; top: 6px; width: 58%; max-width: 410px; height: 210px; opacity: 0.9; pointer-events: none; }
+
 
 .hero .tx { position: relative; max-width: 64%; }
 .hero .hi { font: italic 600 34px/1.1 var(--serif); color: var(--rose-d); }
@@ -330,7 +331,8 @@ body.evening textarea.lined { background: #FDF7ED repeating-linear-gradient(tran
   .g2, .g3, .methods, .f2 { grid-template-columns: 1fr; }
   .ph h1 { font-size: 30px; }
   .hero .tx { max-width: 100%; }
-  .hero .heroart { width: 68%; opacity: 0.4; }
+  .hero .heroart { width: 78%; height: 195px; right: 4px; top: 4px; opacity: 0.45; }
+
   .fab { bottom: calc(84px + env(safe-area-inset-bottom)); right: 16px; }
   .modal { padding: 0; align-items: flex-end; }
   .sheet { max-height: 94vh; border-radius: 22px 22px 0 0; }
