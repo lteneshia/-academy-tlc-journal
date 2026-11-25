@@ -905,7 +905,8 @@ function tlcBotanicalRose(cx, cy, r, cLight, cDeep, tag) {
 }
 
 function heroArt() {
-    var svg = '<svg class="heroart" viewBox="0 0 420 200" preserveAspectRatio="xMaxYMin meet" aria-hidden="true">';
+      var svg = '<svg class="heroart" viewBox="0 0 420 200" preserveAspectRatio="xMaxYMin slice" aria-hidden="true">';
+
 
 
   // Cascading olive & myrtle stems curving out from the upper-right corner
