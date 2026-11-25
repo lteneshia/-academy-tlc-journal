@@ -913,9 +913,10 @@ function heroArt() {
   svg += tlcVineArc(414, 48, 378, 72, 352, 108, 336, 152, '#2A556F', 4, 0.8);
 
   // Layered watercolor blooms in your Teal & Warm Amber palette
-  svg += tlcBotanicalRose(362, 44, 36, '#1B6B78', '#0F4A53', 'm1');
-  svg += tlcBotanicalRose(304, 24, 24, '#F3A178', '#E2723B', 'm2');
-  svg += tlcBotanicalRose(388, 102, 21, '#F3A178', '#E2723B', 'm3');
+  svg += tlcBotanicalRose(356, 52, 34, '#1B6B78', '#0F4A53', 'm1');
+  svg += tlcBotanicalRose(300, 34, 22, '#F3A178', '#E2723B', 'm2');
+  svg += tlcBotanicalRose(376, 106, 20, '#F3A178', '#E2723B', 'm3');
+
 
   // Delicate buds & golden accents
   svg += '<ellipse cx="262" cy="56" rx="5.5" ry="7.5" transform="rotate(-28 262 56)" fill="#1B6B78" opacity="0.62"/>';
