@@ -348,3 +348,30 @@ body.evening textarea.lined { background: #FDF7ED repeating-linear-gradient(tran
 .topm .nm { font: 400 30px/1 var(--script); }
 
 
+/* Heirloom Stationery & Dainty Gold Trim Polish */
+.card {
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 4px 14px -4px rgba(15, 74, 83, 0.08),
+    0 14px 30px -16px rgba(212, 175, 55, 0.22);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn.pri {
+  background: linear-gradient(135deg, var(--rose) 0%, var(--rose-d) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 4px 12px -3px rgba(15, 74, 83, 0.32);
+}
+
+.btn {
+  transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn:active {
+  transform: scale(0.98);
+}
+
+.tag.gold {
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  background: linear-gradient(180deg, #FFFDF7 0%, var(--gold2) 100%);
+}
